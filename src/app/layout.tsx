@@ -4,14 +4,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSearch } from "@/components/layout/command-search";
+import {
+  GithubLink,
+  HeaderSidebarTrigger,
+} from "@/components/layout/header-actions";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Providers } from "@/components/providers";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const metadata: Metadata = {
   title: "orle.dev - Developer Tools",
@@ -43,11 +42,11 @@ export default function RootLayout({
             <AppSidebar />
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <SidebarTrigger />
-                <Separator orientation="vertical" className="h-6" />
+                <HeaderSidebarTrigger />
                 <div className="flex-1">
                   <CommandSearch />
                 </div>
+                <GithubLink />
                 <ThemeToggle />
               </header>
               <main className="flex-1 p-6">{children}</main>
