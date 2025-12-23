@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,12 +14,13 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getToolsBySection, SECTIONS } from "@/lib/tools/registry";
@@ -51,57 +52,59 @@ export function AppSidebar() {
           <SidebarTrigger className="size-8" />
         </div>
       </SidebarHeader>
-      <SidebarContent className="py-1">
-        {SECTIONS.map((section) => {
-          const tools = getToolsBySection(section.id);
-          const Icon = section.icon;
-          const isActive = tools.some((t) => pathname === `/tools/${t.slug}`);
+      <SidebarContent className="gap-0 py-2">
+        <SidebarGroup className="p-0">
+          <SidebarMenu>
+            {SECTIONS.map((section) => {
+              const tools = getToolsBySection(section.id);
+              const Icon = section.icon;
+              const isActive = tools.some(
+                (t) => pathname === `/tools/${t.slug}`,
+              );
 
-          return (
-            <Collapsible
-              key={section.id}
-              defaultOpen={isActive}
-              className="group/collapsible"
-            >
-              <SidebarGroup className="px-2 py-1">
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-xs font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                    <div className="flex items-center gap-2">
-                      <Icon className="size-4 text-muted-foreground" />
-                      <span>{section.name}</span>
-                    </div>
-                    <ChevronDown className="size-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarGroupContent className="mt-1">
-                    <SidebarMenu className="gap-0.5">
-                      {tools.map((tool) => {
-                        const isToolActive = pathname === `/tools/${tool.slug}`;
-                        return (
-                          <SidebarMenuItem key={tool.slug}>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={isToolActive}
-                              size="sm"
-                              className="pl-8"
-                            >
-                              <Link href={`/tools/${tool.slug}`}>
-                                <span className="truncate text-xs">
+              return (
+                <Collapsible
+                  key={section.id}
+                  defaultOpen={isActive}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="px-3">
+                        <Icon className="size-4" />
+                        <span className="text-sm font-medium">
+                          {section.name}
+                        </span>
+                        <ChevronRight className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {tools.map((tool) => {
+                          const isToolActive =
+                            pathname === `/tools/${tool.slug}`;
+                          return (
+                            <SidebarMenuSubItem key={tool.slug}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={isToolActive}
+                                size="sm"
+                              >
+                                <Link href={`/tools/${tool.slug}`}>
                                   {tool.name}
-                                </span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      })}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </SidebarGroup>
-            </Collapsible>
-          );
-        })}
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5">
         <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
