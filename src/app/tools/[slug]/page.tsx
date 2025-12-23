@@ -1,17 +1,24 @@
-"use client";
+import { tools } from "@/lib/tools/registry";
+import { ToolPageClient } from "./tool-page-client";
 
-import { notFound, useParams } from "next/navigation";
-import { ToolPage } from "@/components/tools/tool-page";
-import { getToolBySlug } from "@/lib/tools/registry";
+// Only allow pre-rendered paths
+export const dynamicParams = false;
 
-export default function ToolPageRoute() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const tool = getToolBySlug(slug);
+// Pre-render all tool pages at build time
+export function generateStaticParams() {
+  return tools.map((tool) => ({
+    slug: tool.slug,
+  }));
+}
 
-  if (!tool) {
-    notFound();
-  }
+export default async function ToolPageRoute({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
 
-  return <ToolPage tool={tool} />;
+  // Pass only the slug (string) to the client component
+  // The client component will look up the tool (which contains functions)
+  return <ToolPageClient slug={slug} />;
 }
