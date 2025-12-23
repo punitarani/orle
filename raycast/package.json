@@ -1,0 +1,47 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "orle",
+  "title": "orle.dev Developer Tools",
+  "description": "100+ developer tools: URL encode, JSON format, UUID, hashing, and more. All processing happens locally.",
+  "icon": "extension-icon.png",
+  "author": "orle",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "search-tools",
+      "title": "Developer Tools Hub",
+      "subtitle": "orle.dev",
+      "description": "Search and use 100+ developer tools",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.93.3",
+    "uuid": "^11.1.0",
+    "nanoid": "^5.1.5",
+    "js-yaml": "^4.1.0",
+    "diff": "^8.0.2"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/diff": "^7.0.2",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "22.15.29",
+    "@types/react": "19.1.6",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.29.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
