@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "../types";
+import type { ColorResultData, ToolDefinition } from "../types";
 
 export const colorTools: ToolDefinition[] = [
   {
@@ -8,7 +8,7 @@ export const colorTools: ToolDefinition[] = [
     section: "colors",
     aliases: ["hex", "rgb", "hsl", "hsv", "color"],
     inputType: "text",
-    outputType: "text",
+    outputType: "color",
     inputPlaceholder: "Enter color (#fff, rgb(255,255,255), hsl(0,0%,100%))...",
     transform: (input) => {
       const str = String(input).trim();
@@ -24,7 +24,7 @@ export const colorTools: ToolDefinition[] = [
       const hsl = rgbToHsl(r, g, b);
       const hsv = rgbToHsv(r, g, b);
 
-      return [
+      const textOutput = [
         `HEX: ${hex}`,
         `RGB: rgb(${r}, ${g}, ${b})`,
         `RGBA: rgba(${r}, ${g}, ${b}, 1)`,
@@ -37,6 +37,20 @@ export const colorTools: ToolDefinition[] = [
         `  --color-rgb: ${r} ${g} ${b};`,
         `  --color-hsl: ${hsl.h} ${hsl.s}% ${hsl.l}%;`,
       ].join("\n");
+
+      const result: ColorResultData = {
+        type: "color",
+        hex,
+        rgb: { r, g, b },
+        hsl: { h: hsl.h, s: hsl.s, l: hsl.l },
+        textOutput,
+        preview: {
+          type: "swatch",
+          colors: [hex],
+        },
+      };
+
+      return result;
     },
   },
   {
@@ -46,15 +60,15 @@ export const colorTools: ToolDefinition[] = [
     section: "colors",
     aliases: ["wcag", "accessibility", "a11y"],
     inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "#000000\n---SEPARATOR---\n#ffffff",
+    outputType: "color",
+    inputPlaceholder: "#000000\n#ffffff",
     transform: (input) => {
       const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n|\n/);
+      const parts = str.split(/---SEPARATOR---|\n---\n|\n/).filter(Boolean);
       if (parts.length < 2) {
         return {
           type: "error",
-          message: "Enter two colors (one per line or use ---SEPARATOR---)",
+          message: "Enter two colors (one per line)",
         };
       }
 
@@ -65,6 +79,9 @@ export const colorTools: ToolDefinition[] = [
         return { type: "error", message: "Invalid color format" };
       }
 
+      const hex1 = rgbToHex(color1.r, color1.g, color1.b);
+      const hex2 = rgbToHex(color2.r, color2.g, color2.b);
+
       const l1 = relativeLuminance(color1.r, color1.g, color1.b);
       const l2 = relativeLuminance(color2.r, color2.g, color2.b);
       const ratio = contrastRatio(l1, l2);
@@ -74,9 +91,9 @@ export const colorTools: ToolDefinition[] = [
       const passAAALarge = ratio >= 4.5;
       const passAAANormal = ratio >= 7;
 
-      return [
-        `Color 1: ${rgbToHex(color1.r, color1.g, color1.b)} (${parts[0].trim()})`,
-        `Color 2: ${rgbToHex(color2.r, color2.g, color2.b)} (${parts[1].trim()})`,
+      const textOutput = [
+        `Color 1: ${hex1}`,
+        `Color 2: ${hex2}`,
         "",
         `Contrast Ratio: ${ratio.toFixed(2)}:1`,
         "",
@@ -86,6 +103,22 @@ export const colorTools: ToolDefinition[] = [
         `  AAA Large Text (4.5:1): ${passAAALarge ? "✓ Pass" : "✗ Fail"}`,
         `  AAA Normal Text (7:1):  ${passAAANormal ? "✓ Pass" : "✗ Fail"}`,
       ].join("\n");
+
+      const hsl1 = rgbToHsl(color1.r, color1.g, color1.b);
+
+      const result: ColorResultData = {
+        type: "color",
+        hex: hex1,
+        rgb: { r: color1.r, g: color1.g, b: color1.b },
+        hsl: { h: hsl1.h, s: hsl1.s, l: hsl1.l },
+        textOutput,
+        preview: {
+          type: "contrast",
+          colors: [hex1, hex2],
+        },
+      };
+
+      return result;
     },
   },
   {
@@ -129,7 +162,7 @@ export const colorTools: ToolDefinition[] = [
     section: "colors",
     aliases: ["linear-gradient", "radial-gradient"],
     inputType: "text",
-    outputType: "text",
+    outputType: "color",
     inputPlaceholder: "Enter colors (one per line):\n#3b82f6\n#8b5cf6",
     options: [
       {
@@ -169,27 +202,42 @@ export const colorTools: ToolDefinition[] = [
       }
 
       const colorList = colors.join(", ");
+      const gradientType = String(opts.type);
+      const angle = Number(opts.angle);
 
-      if (opts.type === "radial") {
-        return [
-          "/* Radial Gradient */",
-          `background: radial-gradient(circle, ${colorList});`,
-          "",
-          "/* With position */",
-          `background: radial-gradient(circle at center, ${colorList});`,
-          `background: radial-gradient(ellipse at top, ${colorList});`,
-        ].join("\n");
+      let gradient: string;
+      if (gradientType === "radial") {
+        gradient = `radial-gradient(circle, ${colorList})`;
+      } else {
+        gradient = `linear-gradient(${angle}deg, ${colorList})`;
       }
 
-      const angle = Number(opts.angle);
-      return [
-        "/* Linear Gradient */",
-        `background: linear-gradient(${angle}deg, ${colorList});`,
+      const textOutput = [
+        "CSS Gradient:",
+        `  background: ${gradient};`,
         "",
-        "/* Direction variants */",
-        `background: linear-gradient(to right, ${colorList});`,
-        `background: linear-gradient(to bottom right, ${colorList});`,
+        "Individual colors:",
+        ...colors.map((c, i) => `  ${i + 1}. ${c}`),
       ].join("\n");
+
+      // Get first color for ColorResultData compatibility
+      const firstColor = parseColor(colors[0]) || { r: 0, g: 0, b: 0 };
+      const hsl = rgbToHsl(firstColor.r, firstColor.g, firstColor.b);
+
+      const result: ColorResultData = {
+        type: "color",
+        hex: colors[0],
+        rgb: { r: firstColor.r, g: firstColor.g, b: firstColor.b },
+        hsl: { h: hsl.h, s: hsl.s, l: hsl.l },
+        textOutput,
+        preview: {
+          type: "gradient",
+          colors,
+          css: gradient,
+        },
+      };
+
+      return result;
     },
   },
   {

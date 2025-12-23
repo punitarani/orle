@@ -1,5 +1,5 @@
 import * as Diff from "diff";
-import type { ToolDefinition } from "../types";
+import type { DiffResultData, ToolDefinition } from "../types";
 
 export const diffTools: ToolDefinition[] = [
   {
@@ -8,11 +8,9 @@ export const diffTools: ToolDefinition[] = [
     description: "Compare two texts and show differences",
     section: "diff",
     aliases: ["compare", "diff", "changes"],
-    inputType: "text",
-    outputType: "text",
+    inputType: "dual",
+    outputType: "diff",
     useWorker: "diff",
-    inputPlaceholder:
-      "Enter text 1 here...\n---SEPARATOR---\nEnter text 2 here...",
     options: [
       {
         id: "mode",
@@ -44,7 +42,7 @@ export const diffTools: ToolDefinition[] = [
       if (parts.length < 2) {
         return {
           type: "error",
-          message: "Use ---SEPARATOR--- to separate two texts",
+          message: "Enter text in both panels to compare",
         };
       }
 
@@ -75,7 +73,25 @@ export const diffTools: ToolDefinition[] = [
           diff = Diff.diffLines(text1, text2);
       }
 
-      return diff
+      // Convert to structured format
+      const changes = diff.map((part) => ({
+        type: (part.added ? "added" : part.removed ? "removed" : "unchanged") as
+          | "added"
+          | "removed"
+          | "unchanged",
+        value: part.value.replace(/\n$/, ""),
+      }));
+
+      // Calculate stats
+      let additions = 0;
+      let deletions = 0;
+      for (const part of diff) {
+        if (part.added) additions += part.value.length;
+        if (part.removed) deletions += part.value.length;
+      }
+
+      // Generate text output for copy
+      const textOutput = diff
         .map((part) => {
           const prefix = part.added ? "+" : part.removed ? "-" : " ";
           const lines = part.value
@@ -84,6 +100,15 @@ export const diffTools: ToolDefinition[] = [
           return lines.map((l) => `${prefix} ${l}`).join("\n");
         })
         .join("\n");
+
+      const result: DiffResultData = {
+        type: "diff",
+        changes,
+        textOutput,
+        stats: { additions, deletions },
+      };
+
+      return result;
     },
   },
   {

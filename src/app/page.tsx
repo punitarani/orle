@@ -13,18 +13,16 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Hero */}
-      <div className="space-y-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <div className="space-y-3 text-center">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
           Developer Tools
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+        <p className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg">
           {tools.length}+ tools for encoding, hashing, formatting, and more.
-          <br />
-          <span className="inline-flex items-center gap-1">
-            <span className="flex size-2 rounded-full bg-emerald-500" />
-            Everything runs locally in your browser — no data leaves your
-            machine.
-          </span>
+        </p>
+        <p className="mx-auto flex items-center justify-center gap-2 text-sm text-muted-foreground sm:text-base">
+          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+          <span>100% client-side — no data leaves your machine</span>
         </p>
       </div>
 

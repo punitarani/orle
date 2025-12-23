@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import type { ToolDefinition, ToolState } from "./types";
+import type {
+  ColorResultData,
+  DiffResultData,
+  ImageResultData,
+  ToolDefinition,
+  ToolState,
+} from "./types";
 
 const DEBOUNCE_DELAY = 300;
 
@@ -12,13 +18,20 @@ export function useTool(tool: ToolDefinition | undefined) {
     `orle-input-${tool?.slug}`,
     "",
   );
+  const [savedInput2, setSavedInput2] = useLocalStorage(
+    `orle-input2-${tool?.slug}`,
+    "",
+  );
 
   const [state, setState] = useState<ToolState>({
     input: "",
+    input2: "",
     output: "",
+    outputData: undefined,
     options: {},
     isProcessing: false,
     error: null,
+    file: null,
   });
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,6 +57,7 @@ export function useTool(tool: ToolDefinition | undefined) {
           setState((prev) => ({
             ...prev,
             output: result,
+            outputData: undefined,
             isProcessing: false,
           }));
         } else if (result && typeof result === "object") {
@@ -52,12 +66,35 @@ export function useTool(tool: ToolDefinition | undefined) {
               ...prev,
               error: result.message,
               output: "",
+              outputData: undefined,
               isProcessing: false,
             }));
           } else if (result.type === "image") {
             setState((prev) => ({
               ...prev,
               output: result.data,
+              outputData: undefined,
+              isProcessing: false,
+            }));
+          } else if (
+            result.type === "image-result" ||
+            result.type === "color" ||
+            result.type === "diff"
+          ) {
+            // Structured result types
+            const data = result as
+              | ImageResultData
+              | ColorResultData
+              | DiffResultData;
+            setState((prev) => ({
+              ...prev,
+              output:
+                "textOutput" in data
+                  ? data.textOutput
+                  : "resultUrl" in data
+                    ? data.resultUrl
+                    : "",
+              outputData: data,
               isProcessing: false,
             }));
           }
@@ -67,6 +104,7 @@ export function useTool(tool: ToolDefinition | undefined) {
           ...prev,
           error: (e as Error).message,
           output: "",
+          outputData: undefined,
           isProcessing: false,
         }));
       }
@@ -87,6 +125,7 @@ export function useTool(tool: ToolDefinition | undefined) {
       ...prev,
       options: defaults,
       input: persistInputs ? savedInput : "",
+      input2: persistInputs ? savedInput2 : "",
     }));
 
     // Auto-run for generator tools (no input required)
@@ -97,7 +136,7 @@ export function useTool(tool: ToolDefinition | undefined) {
         transform("", defaults);
       }, 0);
     }
-  }, [tool, persistInputs, savedInput, transform]);
+  }, [tool, persistInputs, savedInput, savedInput2, transform]);
 
   // Debounced input handler
   const setInput = useCallback(
@@ -120,9 +159,36 @@ export function useTool(tool: ToolDefinition | undefined) {
     [transform, persistInputs, setSavedInput],
   );
 
+  // Input 2 handler for dual input (diff tools)
+  const setInput2 = useCallback(
+    (value: string) => {
+      setState((prev) => ({ ...prev, input2: value }));
+
+      if (persistInputs) {
+        setSavedInput2(value);
+      }
+
+      // Debounce transform with combined input
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
+      debounceRef.current = setTimeout(() => {
+        setState((current) => {
+          // Combine inputs with separator for transform
+          const combined = `${current.input}\n---SEPARATOR---\n${value}`;
+          transform(combined, optionsRef.current);
+          return current;
+        });
+      }, DEBOUNCE_DELAY);
+    },
+    [transform, persistInputs, setSavedInput2],
+  );
+
   // Handle file input
   const setFile = useCallback(
     (file: File) => {
+      setState((prev) => ({ ...prev, file }));
       transform(file, state.options);
     },
     [transform, state.options],
@@ -155,11 +221,15 @@ export function useTool(tool: ToolDefinition | undefined) {
     setState((prev) => ({
       ...prev,
       input: "",
+      input2: "",
       output: "",
+      outputData: undefined,
       error: null,
+      file: null,
     }));
     setSavedInput("");
-  }, [setSavedInput]);
+    setSavedInput2("");
+  }, [setSavedInput, setSavedInput2]);
 
   // Swap input/output
   const swap = useCallback(() => {
@@ -182,6 +252,7 @@ export function useTool(tool: ToolDefinition | undefined) {
   return {
     ...state,
     setInput,
+    setInput2,
     setFile,
     setOption,
     runTransform,

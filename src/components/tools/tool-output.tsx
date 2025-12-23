@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Download, Loader2 } from "lucide-react";
+import { Copy, Download } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,14 +71,30 @@ export function ToolOutput({
     return (
       <div
         className={cn(
-          "flex min-h-[200px] items-center justify-center rounded-lg border bg-muted/30",
+          "flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border bg-muted/30",
           className,
         )}
       >
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          <span className="text-sm">Processing...</span>
+        <div className="relative">
+          <div className="size-8 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-primary" />
         </div>
+        <span className="text-sm text-muted-foreground">Processing...</span>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!value) {
+    return (
+      <div
+        className={cn(
+          "flex min-h-[200px] items-center justify-center rounded-lg border border-dashed bg-muted/5",
+          className,
+        )}
+      >
+        <p className="text-sm text-muted-foreground/60">
+          {placeholder || "Output will appear here"}
+        </p>
       </div>
     );
   }

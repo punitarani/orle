@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Github } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { Github } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 export function HeaderSidebarTrigger() {
   const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = state === "collapsed";
 
   if (!isCollapsed) return null;
 
@@ -27,4 +27,3 @@ export function GithubLink() {
     </Button>
   );
 }
-

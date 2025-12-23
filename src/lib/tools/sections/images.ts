@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "../types";
+import type { ImageResultData, ToolDefinition } from "../types";
 
 export const imageTools: ToolDefinition[] = [
   {
@@ -8,7 +8,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["compress", "optimize-image"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     useWorker: "image",
     options: [
       {
@@ -48,7 +48,8 @@ export const imageTools: ToolDefinition[] = [
       ctx.drawImage(img, 0, 0);
 
       const quality = Number(opts.quality) / 100;
-      const mimeType = `image/${opts.format === "jpeg" ? "jpeg" : opts.format}`;
+      const format = String(opts.format);
+      const mimeType = `image/${format === "jpeg" ? "jpeg" : format}`;
 
       return new Promise((resolve) => {
         canvas.toBlob(
@@ -57,20 +58,22 @@ export const imageTools: ToolDefinition[] = [
               resolve({ type: "error", message: "Compression failed" });
               return;
             }
-            const url = URL.createObjectURL(blob);
+            const resultUrl = URL.createObjectURL(blob);
             const originalSize = input.size;
-            const newSize = blob.size;
-            const savings = ((1 - newSize / originalSize) * 100).toFixed(1);
+            const resultSize = blob.size;
+            const savings = (1 - resultSize / originalSize) * 100;
 
-            resolve(
-              [
-                `Original: ${formatBytes(originalSize)}`,
-                `Compressed: ${formatBytes(newSize)}`,
-                `Savings: ${savings}%`,
-                "",
-                `Download: ${url}`,
-              ].join("\n"),
-            );
+            const result: ImageResultData = {
+              type: "image-result",
+              resultUrl,
+              originalSize,
+              resultSize,
+              originalDimensions: { width: img.width, height: img.height },
+              resultDimensions: { width: img.width, height: img.height },
+              savings,
+              filename: `compressed.${format === "jpeg" ? "jpg" : format}`,
+            };
+            resolve(result);
           },
           mimeType,
           quality,
@@ -85,7 +88,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["resize", "scale-image"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     useWorker: "image",
     options: [
       {
@@ -150,7 +153,8 @@ export const imageTools: ToolDefinition[] = [
       }
       ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-      const mimeType = `image/${opts.format}`;
+      const format = String(opts.format);
+      const mimeType = `image/${format}`;
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
@@ -158,17 +162,18 @@ export const imageTools: ToolDefinition[] = [
             resolve({ type: "error", message: "Resize failed" });
             return;
           }
-          const url = URL.createObjectURL(blob);
+          const resultUrl = URL.createObjectURL(blob);
 
-          resolve(
-            [
-              `Original: ${img.width}×${img.height}`,
-              `Resized: ${targetWidth}×${targetHeight}`,
-              `Size: ${formatBytes(blob.size)}`,
-              "",
-              `Download: ${url}`,
-            ].join("\n"),
-          );
+          const result: ImageResultData = {
+            type: "image-result",
+            resultUrl,
+            originalSize: input.size,
+            resultSize: blob.size,
+            originalDimensions: { width: img.width, height: img.height },
+            resultDimensions: { width: targetWidth, height: targetHeight },
+            filename: `resized.${format === "jpeg" ? "jpg" : format}`,
+          };
+          resolve(result);
         }, mimeType);
       });
     },
@@ -180,7 +185,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["png-to-jpg", "jpg-to-png", "webp"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     options: [
       {
         id: "format",
@@ -223,7 +228,8 @@ export const imageTools: ToolDefinition[] = [
       ctx.drawImage(img, 0, 0);
 
       const quality = Number(opts.quality) / 100;
-      const mimeType = `image/${opts.format}`;
+      const format = String(opts.format);
+      const mimeType = `image/${format}`;
 
       return new Promise((resolve) => {
         canvas.toBlob(
@@ -232,18 +238,21 @@ export const imageTools: ToolDefinition[] = [
               resolve({ type: "error", message: "Conversion failed" });
               return;
             }
-            const url = URL.createObjectURL(blob);
-            const format = String(opts.format);
+            const resultUrl = URL.createObjectURL(blob);
             const ext = format === "jpeg" ? "jpg" : format;
+            const savings = (1 - blob.size / input.size) * 100;
 
-            resolve(
-              [
-                `Original: ${input.name} (${formatBytes(input.size)})`,
-                `Converted: ${ext.toUpperCase()} (${formatBytes(blob.size)})`,
-                "",
-                `Download: ${url}`,
-              ].join("\n"),
-            );
+            const result: ImageResultData = {
+              type: "image-result",
+              resultUrl,
+              originalSize: input.size,
+              resultSize: blob.size,
+              originalDimensions: { width: img.width, height: img.height },
+              resultDimensions: { width: img.width, height: img.height },
+              savings,
+              filename: `converted.${ext}`,
+            };
+            resolve(result);
           },
           mimeType,
           quality,
@@ -258,7 +267,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["crop"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     options: [
       { id: "x", label: "X offset", type: "number", default: 0, min: 0 },
       { id: "y", label: "Y offset", type: "number", default: 0, min: 0 },
@@ -292,16 +301,18 @@ export const imageTools: ToolDefinition[] = [
             resolve({ type: "error", message: "Crop failed" });
             return;
           }
-          const url = URL.createObjectURL(blob);
+          const resultUrl = URL.createObjectURL(blob);
 
-          resolve(
-            [
-              `Original: ${img.width}×${img.height}`,
-              `Cropped: ${width}×${height} at (${x}, ${y})`,
-              "",
-              `Download: ${url}`,
-            ].join("\n"),
-          );
+          const result: ImageResultData = {
+            type: "image-result",
+            resultUrl,
+            originalSize: input.size,
+            resultSize: blob.size,
+            originalDimensions: { width: img.width, height: img.height },
+            resultDimensions: { width, height },
+            filename: "cropped.png",
+          };
+          resolve(result);
         }, "image/png");
       });
     },
@@ -313,7 +324,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["rotate", "flip", "mirror"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     options: [
       {
         id: "operation",
@@ -373,16 +384,18 @@ export const imageTools: ToolDefinition[] = [
             resolve({ type: "error", message: "Operation failed" });
             return;
           }
-          const url = URL.createObjectURL(blob);
+          const resultUrl = URL.createObjectURL(blob);
 
-          resolve(
-            [
-              `Original: ${img.width}×${img.height}`,
-              `Result: ${canvas.width}×${canvas.height}`,
-              "",
-              `Download: ${url}`,
-            ].join("\n"),
-          );
+          const result: ImageResultData = {
+            type: "image-result",
+            resultUrl,
+            originalSize: input.size,
+            resultSize: blob.size,
+            originalDimensions: { width: img.width, height: img.height },
+            resultDimensions: { width: canvas.width, height: canvas.height },
+            filename: "transformed.png",
+          };
+          resolve(result);
         }, "image/png");
       });
     },
@@ -677,7 +690,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["remove-exif", "clean-image"],
     inputType: "file",
-    outputType: "download",
+    outputType: "image-result",
     transform: async (input) => {
       if (!(input instanceof File)) {
         return { type: "error", message: "Please drop an image file" };
@@ -700,18 +713,20 @@ export const imageTools: ToolDefinition[] = [
             resolve({ type: "error", message: "Processing failed" });
             return;
           }
-          const url = URL.createObjectURL(blob);
+          const resultUrl = URL.createObjectURL(blob);
+          const savings = (1 - blob.size / input.size) * 100;
 
-          resolve(
-            [
-              "Metadata stripped by re-encoding image.",
-              "",
-              `Original: ${formatBytes(input.size)}`,
-              `Cleaned: ${formatBytes(blob.size)}`,
-              "",
-              `Download: ${url}`,
-            ].join("\n"),
-          );
+          const result: ImageResultData = {
+            type: "image-result",
+            resultUrl,
+            originalSize: input.size,
+            resultSize: blob.size,
+            originalDimensions: { width: img.width, height: img.height },
+            resultDimensions: { width: img.width, height: img.height },
+            savings,
+            filename: "cleaned.png",
+          };
+          resolve(result);
         }, input.type || "image/png");
       });
     },
