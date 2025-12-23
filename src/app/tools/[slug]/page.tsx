@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { tools } from "@/lib/tools/registry";
 import { ToolPageClient } from "./tool-page-client";
 
@@ -11,6 +12,14 @@ export function generateStaticParams() {
   }));
 }
 
+function ToolPageLoading() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 export default async function ToolPageRoute({
   params,
 }: {
@@ -20,5 +29,10 @@ export default async function ToolPageRoute({
 
   // Pass only the slug (string) to the client component
   // The client component will look up the tool (which contains functions)
-  return <ToolPageClient slug={slug} />;
+  // Wrap in Suspense because ToolPageClient uses useSearchParams
+  return (
+    <Suspense fallback={<ToolPageLoading />}>
+      <ToolPageClient slug={slug} />
+    </Suspense>
+  );
 }

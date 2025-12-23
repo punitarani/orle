@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
 };
 ```
 
+
+
 - `output: "export"` - Generates an `out/` folder with pure static HTML/CSS/JS files
 - `images: { unoptimized: true }` - Disables Image Optimization API (requires server, incompatible with static export)
 
@@ -70,6 +72,8 @@ export default async function ToolPageRoute({
   return <ToolPageClient slug={slug} />;
 }
 ```
+
+
 
 ### 3. Create Client Wrapper Component
 
@@ -116,11 +120,13 @@ flowchart LR
     E --> F
 ```
 
+
+
 ## Result
 
 After `bun run build`:
 
-```
+```javascript
 Route (app)
 ┌ ○ /
 ├ ○ /_not-found
@@ -133,5 +139,3 @@ Route (app)
 ○  (Static)  prerendered as static content
 ●  (SSG)     prerendered as static HTML (uses generateStaticParams)
 ```
-
-All 131 pages are statically generated and can be deployed to any static hosting provider.

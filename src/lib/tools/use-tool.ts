@@ -12,7 +12,11 @@ import type {
 
 const DEBOUNCE_DELAY = 300;
 
-export function useTool(tool: ToolDefinition | undefined) {
+export function useTool(
+  tool: ToolDefinition | undefined,
+  initialInput?: string,
+  initialOptions?: Record<string, unknown>,
+) {
   const [persistInputs] = useLocalStorage("orle-persist-inputs", true);
   const [savedInput, setSavedInput] = useLocalStorage(
     `orle-input-${tool?.slug}`,
@@ -112,7 +116,7 @@ export function useTool(tool: ToolDefinition | undefined) {
     [tool],
   );
 
-  // Initialize options from tool defaults
+  // Initialize options from tool defaults, handling initial values from URL
   useEffect(() => {
     if (!tool) return;
 
@@ -121,22 +125,42 @@ export function useTool(tool: ToolDefinition | undefined) {
       defaults[opt.id] = opt.default;
     }
 
+    // Merge defaults with any initial options from URL
+    const mergedOptions = initialOptions
+      ? { ...defaults, ...initialOptions }
+      : defaults;
+
+    // Determine initial input: URL param > saved > empty
+    const effectiveInput = initialInput ?? (persistInputs ? savedInput : "");
+    const effectiveInput2 = persistInputs ? savedInput2 : "";
+
     setState((prev) => ({
       ...prev,
-      options: defaults,
-      input: persistInputs ? savedInput : "",
-      input2: persistInputs ? savedInput2 : "",
+      options: mergedOptions,
+      input: effectiveInput,
+      input2: effectiveInput2,
     }));
 
-    // Auto-run for generator tools (no input required)
-    if (tool.inputType === "none" && !initializedRef.current) {
+    // Auto-run for generator tools OR if initial input was provided via URL
+    if (!initializedRef.current) {
       initializedRef.current = true;
-      // Use setTimeout to ensure state is updated
-      setTimeout(() => {
-        transform("", defaults);
-      }, 0);
+
+      if (tool.inputType === "none" || initialInput) {
+        // Use setTimeout to ensure state is updated
+        setTimeout(() => {
+          transform(effectiveInput, mergedOptions);
+        }, 0);
+      }
     }
-  }, [tool, persistInputs, savedInput, savedInput2, transform]);
+  }, [
+    tool,
+    persistInputs,
+    savedInput,
+    savedInput2,
+    transform,
+    initialInput,
+    initialOptions,
+  ]);
 
   // Debounced input handler
   const setInput = useCallback(

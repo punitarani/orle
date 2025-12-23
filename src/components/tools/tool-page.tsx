@@ -84,9 +84,15 @@ function OutputActions({
 
 type ToolPageProps = {
   tool: ToolDefinition;
+  initialInput?: string;
+  initialOptions?: Record<string, unknown>;
 };
 
-export function ToolPage({ tool }: ToolPageProps) {
+export function ToolPage({
+  tool,
+  initialInput,
+  initialOptions,
+}: ToolPageProps) {
   const { copy } = useClipboard();
   const {
     input,
@@ -106,7 +112,7 @@ export function ToolPage({ tool }: ToolPageProps) {
     clearFile,
     swap,
     loadExample,
-  } = useTool(tool);
+  } = useTool(tool, initialInput, initialOptions);
 
   const toolInputRef = useRef<ToolInputRef>(null);
   const [hasFile, setHasFile] = useState(false);
