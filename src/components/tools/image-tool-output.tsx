@@ -1,8 +1,5 @@
 "use client";
 
-import { Copy, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useClipboard } from "@/hooks/use-clipboard";
 import type { ImageResultData } from "@/lib/tools/types";
 import { cn } from "@/lib/utils";
 
@@ -20,15 +17,6 @@ function formatBytes(bytes: number): string {
 }
 
 export function ImageToolOutput({ data, className }: ImageToolOutputProps) {
-  const { copied, copy } = useClipboard();
-
-  const handleDownload = () => {
-    const a = document.createElement("a");
-    a.href = data.resultUrl;
-    a.download = data.filename || "output";
-    a.click();
-  };
-
   // Empty state
   if (!data.resultUrl) {
     return (
@@ -97,18 +85,6 @@ export function ImageToolOutput({ data, className }: ImageToolOutputProps) {
             was {formatBytes(data.originalSize)}
           </span>
         )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={handleDownload}>
-          <Download className="mr-2 size-4" />
-          Download
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => copy(data.resultUrl)}>
-          <Copy className="mr-2 size-4" />
-          {copied ? "Copied!" : "Copy URL"}
-        </Button>
       </div>
     </div>
   );

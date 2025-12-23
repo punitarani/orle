@@ -1,10 +1,7 @@
 "use client";
 
-import { Copy, Download } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useClipboard } from "@/hooks/use-clipboard";
 import type { ToolOutputType } from "@/lib/tools/types";
 import { cn } from "@/lib/utils";
 
@@ -25,35 +22,6 @@ export function ToolOutput({
   placeholder = "Output will appear here...",
   className,
 }: ToolOutputProps) {
-  const { copied, copy } = useClipboard();
-
-  const handleCopy = () => {
-    if (value) copy(value);
-  };
-
-  const handleDownload = () => {
-    if (!value) return;
-
-    // Check if value contains a blob URL
-    const urlMatch = value.match(/Download:\s*(blob:[^\s]+)/);
-    if (urlMatch) {
-      const a = document.createElement("a");
-      a.href = urlMatch[1];
-      a.download = "output";
-      a.click();
-      return;
-    }
-
-    // Otherwise download as text
-    const blob = new Blob([value], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "output.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   if (error) {
     return (
       <div
@@ -114,59 +82,18 @@ export function ToolOutput({
             />
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleCopy}>
-            <Copy className="mr-2 size-4" />
-            {copied ? "Copied!" : "Copy Data URL"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const a = document.createElement("a");
-              a.href = value;
-              a.download = "image.png";
-              a.click();
-            }}
-          >
-            <Download className="mr-2 size-4" />
-            Download
-          </Button>
-        </div>
       </div>
     );
   }
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <div className="relative">
-        <Textarea
-          value={value}
-          readOnly
-          placeholder={placeholder}
-          className="min-h-[200px] resize-y font-mono text-sm"
-        />
-        {value && (
-          <div className="absolute right-2 top-2 flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={handleCopy}
-            >
-              <Copy className="size-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={handleDownload}
-            >
-              <Download className="size-3.5" />
-            </Button>
-          </div>
-        )}
-      </div>
+      <Textarea
+        value={value}
+        readOnly
+        placeholder={placeholder}
+        className="min-h-[200px] resize-y font-mono text-sm"
+      />
     </div>
   );
 }

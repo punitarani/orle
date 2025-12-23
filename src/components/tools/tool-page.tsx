@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowLeftRight, Play, RotateCcw } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Copy,
+  Download,
+  Play,
+  RotateCcw,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useClipboard } from "@/hooks/use-clipboard";
@@ -17,9 +25,62 @@ import { DiffOutput } from "./diff-output";
 import { DualInput } from "./dual-input";
 import { ImageToolOutput } from "./image-tool-output";
 import { ToolExamples } from "./tool-examples";
-import { ToolInput } from "./tool-input";
+import { ToolInput, type ToolInputRef } from "./tool-input";
 import { ToolOptions } from "./tool-options";
 import { ToolOutput } from "./tool-output";
+
+function OutputActions({
+  value,
+  downloadFilename = "output.txt",
+}: {
+  value: string;
+  downloadFilename?: string;
+}) {
+  const { copy } = useClipboard();
+
+  if (!value) return null;
+
+  const handleDownload = () => {
+    // Check if it's a data URL or blob URL
+    if (value.startsWith("data:") || value.startsWith("blob:")) {
+      const a = document.createElement("a");
+      a.href = value;
+      a.download = downloadFilename;
+      a.click();
+      return;
+    }
+
+    // Otherwise download as text
+    const blob = new Blob([value], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = downloadFilename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="flex gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={() => copy(value)}
+      >
+        <Copy className="size-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={handleDownload}
+      >
+        <Download className="size-3.5" />
+      </Button>
+    </div>
+  );
+}
 
 type ToolPageProps = {
   tool: ToolDefinition;
@@ -35,15 +96,30 @@ export function ToolPage({ tool }: ToolPageProps) {
     options,
     isProcessing,
     error,
+    file,
     setInput,
     setInput2,
     setFile,
     setOption,
     runTransform,
     clear,
+    clearFile,
     swap,
     loadExample,
   } = useTool(tool);
+
+  const toolInputRef = useRef<ToolInputRef>(null);
+  const [hasFile, setHasFile] = useState(false);
+
+  // Track file state from ToolInput
+  useEffect(() => {
+    setHasFile(!!file);
+  }, [file]);
+
+  const handleClearFile = () => {
+    toolInputRef.current?.clearFile();
+    clearFile();
+  };
 
   // Render the appropriate output component based on type and data
   const renderOutput = () => {
@@ -169,6 +245,7 @@ export function ToolPage({ tool }: ToolPageProps) {
               <span className="text-sm font-medium text-muted-foreground">
                 Differences
               </span>
+              <OutputActions value={output} />
             </div>
             {renderOutput()}
           </div>
@@ -179,11 +256,24 @@ export function ToolPage({ tool }: ToolPageProps) {
       {tool.inputType !== "dual" && tool.inputType !== "none" && (
         <div className="grid gap-6 md:grid-cols-2 md:items-start">
           {/* Input with Run button */}
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              Input
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex h-7 items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Input
+              </span>
+              {hasFile && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  onClick={handleClearFile}
+                >
+                  <X className="size-3.5" />
+                </Button>
+              )}
+            </div>
             <ToolInput
+              ref={toolInputRef}
               type={tool.inputType}
               value={input}
               onChange={setInput}
@@ -203,10 +293,24 @@ export function ToolPage({ tool }: ToolPageProps) {
           </div>
 
           {/* Output */}
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              Output
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex h-7 items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                Output
+              </span>
+              <OutputActions
+                value={
+                  outputData?.type === "image-result"
+                    ? (outputData as ImageResultData).resultUrl
+                    : output
+                }
+                downloadFilename={
+                  outputData?.type === "image-result"
+                    ? (outputData as ImageResultData).filename
+                    : "output.txt"
+                }
+              />
+            </div>
             {renderOutput()}
           </div>
         </div>
@@ -216,9 +320,12 @@ export function ToolPage({ tool }: ToolPageProps) {
       {tool.inputType === "none" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Output
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                Output
+              </span>
+              <OutputActions value={output} />
+            </div>
             <Button
               variant="outline"
               size="sm"

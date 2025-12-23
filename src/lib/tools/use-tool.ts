@@ -231,6 +231,17 @@ export function useTool(tool: ToolDefinition | undefined) {
     setSavedInput2("");
   }, [setSavedInput, setSavedInput2]);
 
+  // Clear file only
+  const clearFile = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      file: null,
+      output: "",
+      outputData: undefined,
+      error: null,
+    }));
+  }, []);
+
   // Swap input/output
   const swap = useCallback(() => {
     if (!tool?.allowSwap) return;
@@ -257,6 +268,7 @@ export function useTool(tool: ToolDefinition | undefined) {
     setOption,
     runTransform,
     clear,
+    clearFile,
     swap,
     loadExample,
   };
