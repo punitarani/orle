@@ -187,7 +187,7 @@ export default function ToolForm({ tool, initialInput = "" }: ToolFormProps) {
               shortcut={{ modifiers: ["cmd", "shift"], key: "backspace" }}
             />
             <Action.OpenInBrowser
-              title="Open in orle.dev"
+              title="Open in Orle.dev"
               icon={Icon.Globe}
               url={`https://orle.dev/tools/${tool.slug}${input ? `?input=${encodeURIComponent(Buffer.from(input).toString("base64"))}` : ""}`}
               shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
@@ -359,7 +359,7 @@ function GeneratorView({
             )}
             <ActionPanel.Section>
               <Action.OpenInBrowser
-                title="Open in orle.dev"
+                title="Open in Orle.dev"
                 icon={Icon.Globe}
                 url={`https://orle.dev/tools/${tool.slug}`}
               />
@@ -434,7 +434,7 @@ function GeneratorView({
           )}
           <ActionPanel.Section>
             <Action.OpenInBrowser
-              title="Open in orle.dev"
+              title="Open in Orle.dev"
               icon={Icon.Globe}
               url={`https://orle.dev/tools/${tool.slug}`}
             />
@@ -456,65 +456,6 @@ function GeneratorView({
             />
           </Detail.Metadata>
         ) : undefined
-      }
-    />
-  );
-}
-
-function _ResultView({
-  tool,
-  result,
-  onCopy,
-  onPaste,
-}: {
-  tool: ToolMeta;
-  result: string;
-  onCopy: () => void;
-  onPaste: () => void;
-}) {
-  const markdown = `## ${tool.name}\n\n\`\`\`\n${result}\n\`\`\``;
-
-  return (
-    <Detail
-      markdown={markdown}
-      actions={
-        <ActionPanel>
-          <ActionPanel.Section title="Result">
-            <Action
-              title="Copy"
-              icon={Icon.CopyClipboard}
-              onAction={onCopy}
-              shortcut={{ modifiers: ["cmd"], key: "c" }}
-            />
-            <Action
-              title="Paste to App"
-              icon={Icon.Document}
-              onAction={onPaste}
-              shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
-            />
-          </ActionPanel.Section>
-          <ActionPanel.Section>
-            <Action.OpenInBrowser
-              title="Open in orle.dev"
-              icon={Icon.Globe}
-              url={`https://orle.dev/tools/${tool.slug}`}
-            />
-          </ActionPanel.Section>
-        </ActionPanel>
-      }
-      metadata={
-        <Detail.Metadata>
-          <Detail.Metadata.Label
-            title="Length"
-            text={`${result.length} chars`}
-          />
-          <Detail.Metadata.Separator />
-          <Detail.Metadata.Link
-            title="orle.dev"
-            text={tool.name}
-            target={`https://orle.dev/tools/${tool.slug}`}
-          />
-        </Detail.Metadata>
       }
     />
   );

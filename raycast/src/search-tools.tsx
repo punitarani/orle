@@ -189,7 +189,7 @@ function ToolListItem({
           </ActionPanel.Section>
           <ActionPanel.Section>
             <Action.OpenInBrowser
-              title="Open in orle.dev"
+              title="Open in Orle.dev"
               url={`https://orle.dev/tools/${tool.slug}`}
               shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
             />
