@@ -40,9 +40,10 @@ function SearchResults({
                   key={tool.slug}
                   value={tool.slug}
                   onSelect={() => onSelect(tool.slug)}
+                  className="flex-col items-start gap-0.5"
                 >
                   <span>{tool.name}</span>
-                  <span className="ml-2 truncate text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-muted-foreground">
                     {tool.description}
                   </span>
                 </CommandItem>
@@ -66,9 +67,10 @@ function SearchResults({
               key={tool.slug}
               value={tool.slug}
               onSelect={() => onSelect(tool.slug)}
+              className="flex-col items-start gap-0.5"
             >
               <span>{tool.name}</span>
-              <span className="ml-2 truncate text-xs text-muted-foreground">
+              <span className="truncate text-xs text-muted-foreground">
                 {tool.description}
               </span>
             </CommandItem>
@@ -151,7 +153,7 @@ export function CommandSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tools..."
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
         />
         <button
           type="button"
