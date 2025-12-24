@@ -2,6 +2,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import "./globals.css";
+import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSearch } from "@/components/layout/command-search";
 import {
@@ -27,18 +28,23 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const sidebarCookie = cookieStore.get("sidebar_state")?.value;
+  const defaultSidebarOpen =
+    sidebarCookie === undefined ? true : sidebarCookie === "true";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
         <Providers>
-          <SidebarProvider defaultOpen={true}>
+          <SidebarProvider defaultOpen={defaultSidebarOpen}>
             <AppSidebar />
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
