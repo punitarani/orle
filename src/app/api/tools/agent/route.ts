@@ -330,8 +330,14 @@ export async function POST(req: Request) {
     // Validate message length
     const userMessages = messages.filter((m) => m.role === "user");
     const lastMessage = userMessages[userMessages.length - 1];
-    if (lastMessage?.content && typeof lastMessage.content === "string") {
-      if (lastMessage.content.length > 1000) {
+    if (lastMessage?.parts) {
+      // Extract text from message parts
+      const textContent = lastMessage.parts
+        .filter((p) => p.type === "text")
+        .map((p) => (p as { type: "text"; text: string }).text)
+        .join(" ");
+
+      if (textContent.length > 1000) {
         return new Response(
           JSON.stringify({
             error: "Input too long. Maximum 1000 characters.",
@@ -341,7 +347,7 @@ export async function POST(req: Request) {
       }
 
       // Check for prompt injection attempts
-      if (detectPromptInjection(lastMessage.content)) {
+      if (detectPromptInjection(textContent)) {
         return new Response(
           JSON.stringify({
             error:
