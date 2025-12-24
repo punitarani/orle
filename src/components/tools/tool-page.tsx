@@ -129,7 +129,13 @@ export function ToolPage({
 
   const toolInputRef = useRef<ToolInputRef>(null);
   const [hasFile, setHasFile] = useState(false);
-  const disableRun = isProcessing || (!input && !file);
+  const disableRun =
+    isProcessing ||
+    (tool.inputType === "dual"
+      ? !input || !input2
+      : tool.inputType === "none"
+        ? false
+        : !input && !file);
 
   // Track file state from ToolInput
   useEffect(() => {
@@ -173,7 +179,16 @@ export function ToolPage({
       }
 
       if (outputData.type === "diff") {
-        return <DiffOutput data={outputData as DiffResultData} />;
+        const mode = String(options.diffMode || "lines");
+        const diffMode = mode === "words" || mode === "chars" ? mode : "lines";
+        return (
+          <DiffOutput
+            data={outputData as DiffResultData}
+            inputA={input}
+            inputB={input2 || ""}
+            diffMode={diffMode}
+          />
+        );
       }
     }
 
@@ -292,6 +307,14 @@ export function ToolPage({
             placeholder1="Enter original text..."
             placeholder2="Enter modified text..."
           />
+          {tool.runPolicy === "manual" && (
+            <div className="flex justify-end">
+              <Button onClick={runTransform} disabled={disableRun}>
+                <Play className="mr-2 size-4" />
+                Run
+              </Button>
+            </div>
+          )}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">
