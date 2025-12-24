@@ -2,8 +2,8 @@ import { Output, streamText } from "ai";
 import { createModel, GENERATOR_MODEL } from "@/lib/ai/model";
 import { customToolDefinitionSchema } from "@/lib/tools/types";
 
-// Allow streaming responses up to 60 seconds
-export const maxDuration = 60;
+// Allow streaming responses up to 5 minutes
+export const maxDuration = 300;
 
 // Reference examples of well-formed tools to guide generation
 const TOOL_EXAMPLES = `

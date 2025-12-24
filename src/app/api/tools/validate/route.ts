@@ -6,7 +6,7 @@ import {
 } from "@/lib/tools/types";
 
 // Allow up to 30 seconds for validation
-export const maxDuration = 30;
+export const maxDuration = 180;
 
 // Dangerous patterns to check for in transform code
 const DANGEROUS_PATTERNS = [
