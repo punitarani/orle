@@ -319,7 +319,7 @@ export default function CustomToolPage({
         value={output}
         error={error}
         isProcessing={isProcessing}
-        placeholder={tool.outputPlaceholder}
+        placeholder={tool.outputPlaceholder ?? undefined}
       />
     );
   };
@@ -457,7 +457,7 @@ export default function CustomToolPage({
               value={input}
               onChange={handleInputChange}
               onFileChange={handleFileChange}
-              placeholder={tool.inputPlaceholder}
+              placeholder={tool.inputPlaceholder ?? undefined}
             />
             {tool.inputType === "text" && (
               <Button
