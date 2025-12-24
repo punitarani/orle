@@ -1792,6 +1792,56 @@
     "runPolicy": "manual"
   },
   {
+    "slug": "image-to-ico",
+    "name": "Image to ICO",
+    "description": "Convert any image into a multi-size .ico file",
+    "section": "images",
+    "aliases": ["ico", "icon", "favicon", "image to ico"],
+    "inputType": "file",
+    "outputType": "download",
+    "options": [
+      {
+        "id": "sizes",
+        "label": "Icon sizes",
+        "type": "select",
+        "default": "standard",
+        "options": [
+          {
+            "value": "favicon",
+            "label": "Favicon (16, 32, 48)"
+          },
+          {
+            "value": "standard",
+            "label": "Standard (16, 32, 48, 64, 128, 256)"
+          },
+          {
+            "value": "large",
+            "label": "Large (64, 128, 256)"
+          }
+        ]
+      },
+      {
+        "id": "fit",
+        "label": "Fit",
+        "type": "select",
+        "default": "contain",
+        "options": [
+          {
+            "value": "contain",
+            "label": "Contain (pad)"
+          },
+          {
+            "value": "cover",
+            "label": "Cover (crop)"
+          }
+        ]
+      }
+    ],
+    "acceptsFile": true,
+    "fileAccept": "image/*",
+    "runPolicy": "manual"
+  },
+  {
     "slug": "color-suite",
     "name": "Color & CSS Suite",
     "description": "Convert colors, compute contrast, generate palettes",

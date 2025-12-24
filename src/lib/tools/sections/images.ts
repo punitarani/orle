@@ -160,6 +160,60 @@ export const imageTools: ToolDefinition[] = [
       return "";
     },
   },
+  {
+    slug: "image-to-ico",
+    name: "Image to ICO",
+    description: "Convert any image into a multi-size .ico file",
+    section: "images",
+    aliases: ["ico", "icon", "favicon", "image to ico"],
+    inputType: "file",
+    outputType: "download",
+    acceptsFile: true,
+    fileAccept: "image/*",
+    runPolicy: "manual",
+    options: [
+      {
+        id: "sizes",
+        label: "Icon sizes",
+        type: "select",
+        default: "standard",
+        options: [
+          { value: "favicon", label: "Favicon (16, 32, 48)" },
+          { value: "standard", label: "Standard (16, 32, 48, 64, 128, 256)" },
+          { value: "large", label: "Large (64, 128, 256)" },
+        ],
+      },
+      {
+        id: "fit",
+        label: "Fit",
+        type: "select",
+        default: "contain",
+        options: [
+          { value: "contain", label: "Contain (pad)" },
+          { value: "cover", label: "Cover (crop)" },
+        ],
+      },
+    ],
+    transform: async (input, opts) => {
+      if (!(input instanceof File)) {
+        return { type: "error", message: "Please drop an image file" };
+      }
+
+      const img = await loadImage(input);
+      const preset = String(opts.sizes || "standard");
+      const fit = String(opts.fit || "contain");
+      const sizes = resolveIcoSizes(preset);
+      const icoData = await buildIcoFromImage(img, sizes, fit);
+      const baseName = input.name?.replace(/\.[^.]+$/, "") || "icon";
+
+      return {
+        type: "download",
+        data: icoData,
+        filename: `${baseName}.ico`,
+        mime: "image/x-icon",
+      };
+    },
+  },
 ];
 
 async function loadImage(file: File): Promise<HTMLImageElement> {
@@ -169,6 +223,103 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
   await img.decode();
   URL.revokeObjectURL(url);
   return img;
+}
+
+const ICO_PRESETS: Record<string, number[]> = {
+  favicon: [16, 32, 48],
+  standard: [16, 32, 48, 64, 128, 256],
+  large: [64, 128, 256],
+};
+
+function resolveIcoSizes(preset: string): number[] {
+  const sizes = ICO_PRESETS[preset] ?? ICO_PRESETS.standard;
+  return Array.from(new Set(sizes)).sort((a, b) => a - b);
+}
+
+async function buildIcoFromImage(
+  img: HTMLImageElement,
+  sizes: number[],
+  fit: string,
+): Promise<Uint8Array> {
+  const fitMode = fit === "cover" ? "cover" : "contain";
+  const images = await Promise.all(
+    sizes.map(async (size) => ({
+      size,
+      data: await renderPngBytes(img, size, fitMode),
+    })),
+  );
+
+  const headerSize = 6;
+  const dirSize = 16 * images.length;
+  const dataSize = images.reduce(
+    (sum, imgData) => sum + imgData.data.length,
+    0,
+  );
+  const buffer = new ArrayBuffer(headerSize + dirSize + dataSize);
+  const view = new DataView(buffer);
+
+  view.setUint16(0, 0, true);
+  view.setUint16(2, 1, true);
+  view.setUint16(4, images.length, true);
+
+  let dirOffset = headerSize;
+  let dataOffset = headerSize + dirSize;
+
+  for (const icon of images) {
+    const size = icon.size;
+    const width = size === 256 ? 0 : size;
+    const height = size === 256 ? 0 : size;
+
+    view.setUint8(dirOffset, width);
+    view.setUint8(dirOffset + 1, height);
+    view.setUint8(dirOffset + 2, 0);
+    view.setUint8(dirOffset + 3, 0);
+    view.setUint16(dirOffset + 4, 1, true);
+    view.setUint16(dirOffset + 6, 32, true);
+    view.setUint32(dirOffset + 8, icon.data.length, true);
+    view.setUint32(dirOffset + 12, dataOffset, true);
+
+    new Uint8Array(buffer, dataOffset, icon.data.length).set(icon.data);
+    dirOffset += 16;
+    dataOffset += icon.data.length;
+  }
+
+  return new Uint8Array(buffer);
+}
+
+async function renderPngBytes(
+  img: HTMLImageElement,
+  size: number,
+  fit: "contain" | "cover",
+): Promise<Uint8Array> {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Canvas unavailable");
+  }
+
+  const scale =
+    fit === "cover"
+      ? Math.max(size / img.width, size / img.height)
+      : Math.min(size / img.width, size / img.height);
+  const drawWidth = Math.round(img.width * scale);
+  const drawHeight = Math.round(img.height * scale);
+  const dx = Math.round((size - drawWidth) / 2);
+  const dy = Math.round((size - drawHeight) / 2);
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/png"),
+  );
+  if (!blob) {
+    throw new Error("Failed to encode PNG");
+  }
+
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
 function resizeImage(
