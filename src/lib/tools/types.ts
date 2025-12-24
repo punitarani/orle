@@ -168,43 +168,49 @@ export const toolOptionSchema = z
     id: z
       .string()
       .describe(
-        "Unique identifier for this option, used as key in options object",
+        "Unique identifier for this option, used as key in options object. Use camelCase or kebab-case.",
       ),
-    label: z.string().describe("Human-readable label shown in UI"),
-    type: toolOptionTypeSchema.describe("The type of UI control to render"),
+    label: z
+      .string()
+      .describe("Human-readable label shown in UI. Keep it short and clear."),
+    type: toolOptionTypeSchema.describe(
+      "The type of UI control to render: 'toggle' (boolean), 'select' (dropdown), 'number' (numeric input), or 'text' (text input)",
+    ),
     default: z
       .union([z.string(), z.number(), z.boolean()])
-      .describe("Default value for this option"),
+      .describe(
+        "Default value for this option. Type must match the 'type' field: boolean for toggle, string for select/text, number for number.",
+      ),
     options: z
       .array(
         z
           .object({
-            value: z.string(),
-            label: z.string(),
+            value: z.string().describe("The value returned when selected"),
+            label: z.string().describe("The text shown to the user"),
           })
           .strict(),
       )
       .nullable()
       .describe(
-        "For select type: array of {value, label} choices. Set to null if not a select type.",
+        "For 'select' type ONLY: array of {value, label} choices. MUST be null for other types (toggle, number, text).",
       ),
     min: z
       .number()
       .nullable()
       .describe(
-        "For number type: minimum value. Set to null if not a number type.",
+        "For 'number' type ONLY: minimum value allowed. MUST be null for other types (toggle, select, text).",
       ),
     max: z
       .number()
       .nullable()
       .describe(
-        "For number type: maximum value. Set to null if not a number type.",
+        "For 'number' type ONLY: maximum value allowed. MUST be null for other types (toggle, select, text).",
       ),
     step: z
       .number()
       .nullable()
       .describe(
-        "For number type: step increment. Set to null if not a number type.",
+        "For 'number' type ONLY: step increment (e.g., 1, 0.1). MUST be null for other types (toggle, select, text).",
       ),
   })
   .strict();
@@ -227,13 +233,19 @@ export const toolExampleSchema = z
       .string()
       .nullable()
       .describe(
-        "Name/description for this example. Set to null if not needed.",
+        "Optional name/description for this example (e.g., 'Basic usage', 'With special characters'). Use null if not needed.",
       ),
-    input: z.string().describe("Example input value"),
+    input: z
+      .string()
+      .describe(
+        "Example input value. Should be representative of typical usage.",
+      ),
     output: z
       .string()
       .nullable()
-      .describe("Expected output for this input. Set to null if not provided."),
+      .describe(
+        "Expected output for this input. Use null if you want to omit showing expected output.",
+      ),
   })
   .strict();
 
@@ -241,73 +253,90 @@ export const toolExampleSchema = z
  * Schema for AI-generated tool definitions.
  * The transform is a string (code) that will be safely executed.
  *
- * Note: We use .nullable() instead of .optional() because OpenAI's structured
- * output strict mode requires all properties to be in the 'required' array.
- * We also use .strict() to add additionalProperties: false.
+ * IMPORTANT FOR LLM TOOL CALLS:
+ * - ALL fields are required in the schema
+ * - Use null (not undefined) for optional/nullable fields
+ * - Never omit nullable fields - always include them with null value
+ * - The .strict() mode enforces no additional properties
+ *
+ * This is required for OpenAI's structured output mode which demands
+ * all properties be in the 'required' array.
  */
 export const customToolDefinitionSchema = z
   .object({
     slug: z
       .string()
       .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens")
-      .describe("URL-friendly unique identifier, e.g., 'csv-to-json'"),
+      .describe(
+        "URL-friendly unique identifier (lowercase, hyphens only). Example: 'csv-to-json' or 'password-generator'",
+      ),
     name: z
       .string()
       .min(3)
       .max(50)
-      .describe("Human-readable tool name, e.g., 'CSV to JSON Converter'"),
+      .describe(
+        "Human-readable tool name (3-50 characters). Example: 'CSV to JSON Converter' or 'Password Generator'",
+      ),
     description: z
       .string()
       .min(10)
       .max(200)
-      .describe("Brief description of what the tool does"),
+      .describe(
+        "Brief description of what the tool does (10-200 characters). Be clear and concise.",
+      ),
     section: z
       .literal("custom")
-      .describe("Section identifier - always 'custom' for generated tools"),
+      .describe(
+        "Section identifier - MUST always be exactly 'custom' for generated tools",
+      ),
     aliases: z
       .array(z.string())
       .max(10)
-      .describe("Alternative search terms for finding this tool"),
-    inputType: toolInputTypeSchema.describe("Type of input the tool accepts"),
+      .describe(
+        "Alternative search terms for finding this tool (max 10). Example: ['csv', 'json', 'convert', 'parser']",
+      ),
+    inputType: toolInputTypeSchema.describe(
+      "Type of input: 'text' (text input), 'file' (file upload), 'dual' (two text inputs for comparison), 'none' (no input, generator tool)",
+    ),
     outputType: toolOutputTypeSchema.describe(
-      "Type of output the tool produces",
+      "Type of output: 'text' (text output), 'image' (image preview), 'download' (file download), 'preview' (formatted preview), 'table' (table view), 'image-result' (image with metadata), 'color' (color picker), 'diff' (side-by-side comparison)",
     ),
     options: z
       .array(toolOptionSchema)
       .max(10)
       .nullable()
       .describe(
-        "Configurable options for the tool. Set to null if no options needed.",
+        "Configurable options for the tool (max 10). Use null if no options are needed. Each option must have all required fields including null values for unused fields.",
       ),
     transformCode: z
       .string()
       .describe(
-        "JavaScript function body as string: receives (input, opts) and returns string or {type:'error', message:string}",
+        "JavaScript function body as string. Receives (input, opts) parameters. Must return a string, or {type:'error', message:string} for errors. Can be async (return Promise<string>). Use only allowed browser APIs.",
       ),
     examples: z
       .array(toolExampleSchema)
       .max(5)
       .nullable()
       .describe(
-        "Example inputs/outputs to demonstrate the tool. Set to null if no examples.",
+        "Example inputs/outputs to demonstrate the tool (max 5). Use null if no examples needed. Each example should show a realistic use case.",
       ),
     allowSwap: z
       .boolean()
       .nullable()
       .describe(
-        "Whether to allow swapping input/output (for encode/decode tools). Set to null if not applicable.",
+        "Whether to allow swapping input/output - useful for encode/decode tools. Use true for reversible operations (base64, url encoding), false or null otherwise.",
       ),
     inputPlaceholder: z
       .string()
       .nullable()
       .describe(
-        "Placeholder text for the input field. Set to null for default.",
+        "Placeholder text for the input field. Use null to use the default placeholder. Example: 'Enter CSV data...'",
       ),
     outputPlaceholder: z
       .string()
       .nullable()
       .describe(
-        "Placeholder text for the output field. Set to null for default.",
+        "Placeholder text for the output field. Use null to use the default placeholder. Example: 'JSON output will appear here...'",
       ),
   })
   .strict();

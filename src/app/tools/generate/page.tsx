@@ -418,6 +418,9 @@ export default function ToolGeneratePage() {
   const [testOptions, setTestOptions] = useState<Record<string, unknown>>({});
   const [activeTab, setActiveTab] = useState<"agent" | "tool">("agent");
   const [toolPanelTab, setToolPanelTab] = useState<"test" | "code">("test");
+  const [autoRetryCount, setAutoRetryCount] = useState(0);
+  const [isAutoRetrying, setIsAutoRetrying] = useState(false);
+  const [skipAutoRetry, setSkipAutoRetry] = useState(false);
 
   const transport = useMemo(
     () =>
@@ -475,6 +478,59 @@ export default function ToolGeneratePage() {
     await sendMessage({ text: lastUserText });
   }, [lastUserText, sendMessage, messages, setMessages]);
 
+  // Automatic retry logic for tool call errors
+  useEffect(() => {
+    if (!error || skipAutoRetry || isAutoRetrying) return;
+
+    const errorMessage = error.message || "";
+
+    // Detect tool call format errors
+    const isToolCallError =
+      errorMessage.includes("toolUse.input") ||
+      errorMessage.includes("invalid tool call") ||
+      errorMessage.includes("format of the value") ||
+      (errorMessage.includes("invalid") && errorMessage.includes("input"));
+
+    // Check if we should auto-retry
+    const maxAutoRetries = 3;
+    const shouldAutoRetry = isToolCallError && autoRetryCount < maxAutoRetries;
+
+    if (shouldAutoRetry && lastUserText) {
+      setIsAutoRetrying(true);
+      setAutoRetryCount((prev) => prev + 1);
+
+      // Wait a bit before retrying (exponential backoff)
+      const backoffDelay = Math.min(1000 * 2 ** autoRetryCount, 5000);
+
+      setTimeout(async () => {
+        try {
+          await handleRetry();
+        } finally {
+          setIsAutoRetrying(false);
+        }
+      }, backoffDelay);
+    }
+  }, [
+    error,
+    autoRetryCount,
+    skipAutoRetry,
+    isAutoRetrying,
+    lastUserText,
+    handleRetry,
+  ]);
+
+  // Reset auto-retry counter on successful completion
+  useEffect(() => {
+    if (status !== "streaming" && messages.length > 0 && !error) {
+      // Check if last message is successful
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === "assistant") {
+        setAutoRetryCount(0);
+        setSkipAutoRetry(false);
+      }
+    }
+  }, [status, messages, error]);
+
   const handleReset = useCallback(() => {
     setMessages([]);
     setLastValidTool(null);
@@ -484,6 +540,9 @@ export default function ToolGeneratePage() {
     setTestOptions({});
     setActiveTab("agent");
     setToolPanelTab("test");
+    setAutoRetryCount(0);
+    setIsAutoRetrying(false);
+    setSkipAutoRetry(false);
   }, [setMessages]);
 
   const handleSave = async () => {
@@ -1027,28 +1086,67 @@ export default function ToolGeneratePage() {
                 {error && (
                   <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 space-y-3">
                     <div className="text-destructive">
-                      <p className="font-medium">Something went wrong</p>
-                      <p className="text-sm opacity-90">
-                        The model returned an invalid tool call while streaming.
-                        You can retry safely.
+                      <p className="font-medium">
+                        {isAutoRetrying
+                          ? `Retrying automatically... (Attempt ${autoRetryCount}/3)`
+                          : "Something went wrong"}
                       </p>
-                      <p className="text-xs opacity-70 mt-1">{error.message}</p>
+                      <p className="text-sm opacity-90">
+                        {isAutoRetrying
+                          ? "The model returned an invalid response. Retrying with a fresh attempt..."
+                          : error.message.includes("toolUse.input") ||
+                              error.message.includes("format of the value")
+                            ? "The model returned an invalid tool call while streaming. You can retry safely."
+                            : "An error occurred during generation."}
+                      </p>
+                      {!isAutoRetrying && (
+                        <p className="text-xs opacity-70 mt-1">
+                          {error.message}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRetry}
-                        disabled={!lastUserText || status === "streaming"}
-                      >
-                        <RefreshCcw className="size-3.5 mr-1.5" />
-                        Retry
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={handleReset}>
-                        <RotateCcw className="size-3.5 mr-1.5" />
-                        Reset
-                      </Button>
-                    </div>
+                    {isAutoRetrying ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
+                        <span className="text-sm">Retrying in a moment...</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSkipAutoRetry(true);
+                            setIsAutoRetrying(false);
+                          }}
+                          className="ml-auto"
+                        >
+                          Skip Auto-Retry
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setAutoRetryCount(0);
+                            setSkipAutoRetry(false);
+                            handleRetry();
+                          }}
+                          disabled={!lastUserText || status === "streaming"}
+                        >
+                          <RefreshCcw className="size-3.5 mr-1.5" />
+                          Retry Now
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={handleReset}>
+                          <RotateCcw className="size-3.5 mr-1.5" />
+                          Reset
+                        </Button>
+                        {autoRetryCount > 0 && autoRetryCount < 3 && (
+                          <span className="text-xs text-muted-foreground self-center">
+                            Retry attempts: {autoRetryCount}/3
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </ConversationContent>

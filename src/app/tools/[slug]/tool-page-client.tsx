@@ -12,11 +12,9 @@ export function ToolPageClient({ slug }: { slug: string }) {
   const toolMeta = getToolMetaBySlug(slug);
   const searchParams = useSearchParams();
 
-  const runtimeSlug = toolMeta?.canonicalSlug ?? slug;
-
   useEffect(() => {
     let active = true;
-    loadToolRuntime(runtimeSlug).then((loaded) => {
+    loadToolRuntime(slug).then((loaded) => {
       if (active) {
         setTool(loaded ?? null);
       }
@@ -24,7 +22,7 @@ export function ToolPageClient({ slug }: { slug: string }) {
     return () => {
       active = false;
     };
-  }, [runtimeSlug]);
+  }, [slug]);
 
   // Parse initial values from URL params (for Raycast "Open in orle.dev" action)
   const initialInput = useMemo(() => {

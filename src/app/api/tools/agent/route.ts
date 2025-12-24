@@ -362,6 +362,71 @@ If a user requests such a tool, politely decline and suggest an alternative legi
 - allowSwap: boolean or null (for encode/decode tools)
 - inputPlaceholder, outputPlaceholder: string or null
 
+## CRITICAL: JSON Schema Format Rules
+When calling generateToolDefinition, you MUST follow these rules to avoid errors:
+
+1. **ALL fields are required** - Do not omit any field from the schema
+2. **Use null for optional fields** - Never use undefined or omit the field
+3. **Nullable fields must be explicitly set**:
+   - options: null (if no options) or [{id, label, type, default, options: null, min: null, max: null, step: null}]
+   - examples: null (if no examples) or [{name: "...", input: "...", output: "..."}]
+   - allowSwap: null (if not applicable) or true/false
+   - inputPlaceholder: null (for default) or "string"
+   - outputPlaceholder: null (for default) or "string"
+
+4. **Options array structure** (when not null):
+   - ALWAYS include: id, label, type, default
+   - Set options: null (unless type is "select", then provide array)
+   - Set min: null, max: null, step: null (unless type is "number", then provide values)
+
+5. **Examples structure** (when not null):
+   - name: string or null (not undefined)
+   - input: string (required)
+   - output: string or null (not undefined)
+
+### Common Mistakes to AVOID:
+❌ Omitting nullable fields entirely
+❌ Using undefined instead of null
+❌ For options: forgetting to set options/min/max/step to null
+❌ For select type: forgetting to provide options array
+❌ For number type: forgetting to set min/max/step values
+
+✅ Correct option structure (toggle):
+{
+  "id": "uppercase",
+  "label": "Convert to uppercase",
+  "type": "toggle",
+  "default": false,
+  "options": null,
+  "min": null,
+  "max": null,
+  "step": null
+}
+
+✅ Correct option structure (select):
+{
+  "id": "format",
+  "label": "Output format",
+  "type": "select",
+  "default": "json",
+  "options": [{"value": "json", "label": "JSON"}, {"value": "xml", "label": "XML"}],
+  "min": null,
+  "max": null,
+  "step": null
+}
+
+✅ Correct option structure (number):
+{
+  "id": "length",
+  "label": "Password length",
+  "type": "number",
+  "default": 16,
+  "options": null,
+  "min": 8,
+  "max": 128,
+  "step": 1
+}
+
 ## Transform Code Rules
 The transformCode is a JavaScript function body that receives:
 - input: string | File
@@ -568,10 +633,10 @@ export async function POST(req: Request) {
         }),
         generateToolDefinition: tool({
           description:
-            "Generate a tool definition based on the user description. Use this to create or update a tool.",
+            "Generate a tool definition based on the user description. IMPORTANT: Ensure all nullable fields (options, examples, allowSwap, inputPlaceholder, outputPlaceholder) are set to null if not needed, NOT undefined or omitted. Follow the exact schema structure.",
           inputSchema: z.object({
             toolDefinition: customToolDefinitionSchema.describe(
-              "The complete tool definition following the schema",
+              "The complete tool definition following the schema. REQUIRED: All fields must be present. Use null for optional fields, not undefined.",
             ),
           }),
           execute: async ({
@@ -787,25 +852,61 @@ export async function POST(req: Request) {
       },
     });
 
-    return await createAgentUIStreamResponse({
-      agent,
-      uiMessages: messages,
-    });
+    // Wrap the stream response with error handling
+    try {
+      const response = await createAgentUIStreamResponse({
+        agent,
+        uiMessages: messages,
+      });
+
+      return response;
+    } catch (streamError) {
+      // Detect tool call format errors
+      const errorMessage =
+        streamError instanceof Error ? streamError.message : "Unknown error";
+
+      // Check if this is a recoverable tool call error
+      const isToolCallError =
+        errorMessage.includes("toolUse.input") ||
+        errorMessage.includes("invalid tool call") ||
+        errorMessage.includes("format of the value");
+
+      // If it's a tool call error and we haven't exceeded retries, we could retry
+      // However, the AI SDK handles streaming errors internally, so we'll let the
+      // frontend handle retries for better UX control
+
+      // Return a structured error response
+      return new Response(
+          JSON.stringify({
+            error: "stream_error",
+            message: isToolCallError
+              ? "The model returned an invalid tool call format. Please retry."
+              : errorMessage,
+            isRetryable: isToolCallError,
+            details:
+              process.env.NODE_ENV === "development"
+                ? {
+                    originalError: errorMessage,
+                    isToolCallError,
+                  }
+                : undefined,
+          }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
   } catch (error) {
-    console.error("Agent error:", error);
-    // Return a more detailed error message for debugging
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error("Error details:", {
-      message: errorMessage,
-      stack: errorStack,
-    });
 
     return new Response(
       JSON.stringify({
-        error: "Agent failed",
+        error: "agent_failed",
         message: errorMessage,
+        isRetryable: false,
         details:
           process.env.NODE_ENV === "development" ? errorStack : undefined,
       }),
