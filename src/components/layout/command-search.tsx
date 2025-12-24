@@ -151,7 +151,7 @@ export function CommandSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tools..."
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
         />
         <button
           type="button"
