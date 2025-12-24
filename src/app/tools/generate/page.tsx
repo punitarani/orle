@@ -7,7 +7,10 @@ import {
   ArrowRight,
   CheckCircle2,
   Code2,
+  Command as CommandIcon,
   Copy,
+  CornerDownLeft,
+  Download,
   ExternalLink,
   Loader2,
   Play,
@@ -379,6 +382,51 @@ function CodeViewer({ code, title }: { code: string; title: string }) {
       <pre className="p-3 text-xs overflow-x-auto font-mono leading-relaxed">
         <code>{code}</code>
       </pre>
+    </div>
+  );
+}
+
+function OutputActions({ value }: { value: string }) {
+  const { copy } = useClipboard();
+
+  if (!value) return null;
+
+  const handleDownload = () => {
+    if (value.startsWith("data:") || value.startsWith("blob:")) {
+      const a = document.createElement("a");
+      a.href = value;
+      a.download = "output.txt";
+      a.click();
+      return;
+    }
+
+    const blob = new Blob([value], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "output.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="flex gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={() => copy(value)}
+      >
+        <Copy className="size-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={handleDownload}
+      >
+        <Download className="size-3.5" />
+      </Button>
     </div>
   );
 }
@@ -1249,6 +1297,10 @@ export default function ToolGeneratePage() {
                     >
                       <Play className="mr-2 size-4" />
                       {isTesting ? "Running..." : "Run"}
+                      <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                        <CommandIcon className="size-3" />
+                        <CornerDownLeft className="size-3" />
+                      </span>
                     </Button>
                   </div>
                 )}
@@ -1260,15 +1312,7 @@ export default function ToolGeneratePage() {
                       <span className="text-sm font-medium text-muted-foreground">
                         Output
                       </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleTest()}
-                        className="h-8"
-                      >
-                        <Play className="mr-2 size-3.5" />
-                        {isTesting ? "Generating..." : "Generate"}
-                      </Button>
+                      <OutputActions value={testOutput} />
                     </div>
                   </div>
                 )}
@@ -1294,13 +1338,29 @@ export default function ToolGeneratePage() {
 
                 {/* Output for generator tools */}
                 {latestTool.inputType === "none" && (
-                  <ToolOutput
-                    type={latestTool.outputType}
-                    value={testOutput}
-                    error={testError}
-                    isProcessing={isTesting}
-                    placeholder={latestTool.outputPlaceholder ?? undefined}
-                  />
+                  <>
+                    <ToolOutput
+                      type={latestTool.outputType}
+                      value={testOutput}
+                      error={testError}
+                      isProcessing={isTesting}
+                      placeholder={latestTool.outputPlaceholder ?? undefined}
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTest()}
+                      >
+                        <Play className="mr-2 size-3.5" />
+                        {isTesting ? "Generating..." : "Generate"}
+                        <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                          <CommandIcon className="size-3" />
+                          <CornerDownLeft className="size-3" />
+                        </span>
+                      </Button>
+                    </div>
+                  </>
                 )}
               </TabsContent>
 

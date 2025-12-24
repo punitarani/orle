@@ -2,7 +2,9 @@
 
 import {
   ArrowLeftRight,
+  Command as CommandIcon,
   Copy,
+  CornerDownLeft,
   Download,
   Play,
   RotateCcw,
@@ -312,6 +314,10 @@ export function ToolPage({
               <Button onClick={runTransform} disabled={disableRun}>
                 <Play className="mr-2 size-4" />
                 Run
+                <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                  <CommandIcon className="size-3" />
+                  <CornerDownLeft className="size-3" />
+                </span>
               </Button>
             </div>
           )}
@@ -365,6 +371,10 @@ export function ToolPage({
               >
                 <Play className="mr-2 size-4" />
                 Run
+                <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                  <CommandIcon className="size-3" />
+                  <CornerDownLeft className="size-3" />
+                </span>
               </Button>
             )}
           </div>
@@ -402,23 +412,22 @@ export function ToolPage({
       {tool.inputType === "none" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Output
-              </span>
-              <OutputActions value={output} download={download ?? undefined} />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={runTransform}
-              className="h-8"
-            >
-              <Play className="mr-2 size-3.5" />
-              Generate
-            </Button>
+            <span className="text-sm font-medium text-muted-foreground">
+              Output
+            </span>
+            <OutputActions value={output} download={download ?? undefined} />
           </div>
           {renderOutput()}
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={runTransform}>
+              <Play className="mr-2 size-3.5" />
+              Generate
+              <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                <CommandIcon className="size-3" />
+                <CornerDownLeft className="size-3" />
+              </span>
+            </Button>
+          </div>
         </div>
       )}
 

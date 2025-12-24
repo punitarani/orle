@@ -877,20 +877,20 @@ export async function POST(req: Request) {
 
       // Return a structured error response
       return new Response(
-          JSON.stringify({
-            error: "stream_error",
-            message: isToolCallError
-              ? "The model returned an invalid tool call format. Please retry."
-              : errorMessage,
-            isRetryable: isToolCallError,
-            details:
-              process.env.NODE_ENV === "development"
-                ? {
-                    originalError: errorMessage,
-                    isToolCallError,
-                  }
-                : undefined,
-          }),
+        JSON.stringify({
+          error: "stream_error",
+          message: isToolCallError
+            ? "The model returned an invalid tool call format. Please retry."
+            : errorMessage,
+          isRetryable: isToolCallError,
+          details:
+            process.env.NODE_ENV === "development"
+              ? {
+                  originalError: errorMessage,
+                  isToolCallError,
+                }
+              : undefined,
+        }),
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
