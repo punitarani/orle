@@ -149,6 +149,19 @@ export const getSectionById = (id: string): ToolSection | undefined =>
   SECTIONS.find((s) => s.id === id);
 
 export const searchTools = (query: string): ToolDefinition[] => {
-  if (!query.trim()) return tools;
-  return fuse.search(query).map((result) => result.item);
+  const normalized = query.trim();
+  if (!normalized) return tools;
+
+  const results = fuse.search(normalized).map((result) => result.item);
+  if (results.length > 0) return results;
+
+  const lowered = normalized.toLowerCase();
+  return tools.filter((tool) => {
+    const nameMatch = tool.name.toLowerCase().includes(lowered);
+    const descMatch = tool.description?.toLowerCase().includes(lowered);
+    const aliasMatch = tool.aliases?.some((alias) =>
+      alias.toLowerCase().includes(lowered),
+    );
+    return nameMatch || descMatch || aliasMatch;
+  });
 };

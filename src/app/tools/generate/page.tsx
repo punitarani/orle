@@ -16,7 +16,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -265,6 +265,8 @@ function CodeViewer({ code, title }: { code: string; title: string }) {
 
 export default function ToolGeneratePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const promptSeed = searchParams.get("prompt") ?? "";
   const isMobile = useIsMobile();
   const [lastValidTool, setLastValidTool] =
     useState<CustomToolDefinitionGenerated | null>(null);
@@ -797,6 +799,7 @@ export default function ToolGeneratePage() {
                 disabled={status === "streaming"}
                 maxLength={1000}
                 showCharacterCount="near-limit"
+                initialValue={promptSeed}
               >
                 <PromptInputTextarea
                   placeholder={

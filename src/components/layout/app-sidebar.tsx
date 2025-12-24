@@ -27,6 +27,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { deleteCustomTool, listCustomTools } from "@/lib/tools/custom-tools-db";
@@ -170,7 +171,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Divider */}
-        <div className="mx-3 my-2 h-px bg-sidebar-border" />
+        <SidebarSeparator className="mx-0 my-2 w-full" />
 
         {/* Built-in Tools Sections */}
         <SidebarGroup className="p-0">

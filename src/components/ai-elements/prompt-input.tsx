@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { ArrowUp, Square } from "lucide-react";
 import type { ComponentProps, FormEvent } from "react";
-import { createContext, useContext, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -31,6 +31,7 @@ interface PromptInputProps extends Omit<ComponentProps<"form">, "onSubmit"> {
   disabled?: boolean;
   maxLength?: number;
   showCharacterCount?: "always" | "near-limit" | "never";
+  initialValue?: string;
 }
 
 export function PromptInput({
@@ -38,11 +39,16 @@ export function PromptInput({
   disabled,
   maxLength,
   showCharacterCount = "never",
+  initialValue = "",
   className,
   children,
   ...props
 }: PromptInputProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
 
   const handleSetValue = (newValue: string) => {
     if (maxLength && newValue.length > maxLength) {

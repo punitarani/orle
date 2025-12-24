@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,6 +85,7 @@ export function CommandSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Handle cmd+k keyboard shortcut
@@ -125,6 +126,10 @@ export function CommandSearch() {
     setOpen(false);
     setQuery("");
   }, []);
+
+  if (pathname === "/") {
+    return null;
+  }
 
   if (!open) {
     return (
