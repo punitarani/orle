@@ -55,7 +55,7 @@ export function ConversationContent({ children, className, ...props }: Conversat
   return (
     <div
       ref={context.contentRef}
-      className={cn('flex flex-col gap-4 p-4', className)}
+      className={cn('flex flex-col gap-3 p-4', className)}
       {...props}
     >
       {typeof children === 'function' ? children(context) : children}

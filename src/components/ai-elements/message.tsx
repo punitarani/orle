@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentProps, ReactNode } from 'react';
+import { Streamdown } from 'streamdown';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -62,7 +63,9 @@ export function MessageContent({
   );
 }
 
-interface MessageResponseProps extends ComponentProps<'div'> {}
+type MessageResponseProps = Omit<ComponentProps<typeof Streamdown>, 'children'> & {
+  children?: string;
+};
 
 export function MessageResponse({
   className,
@@ -70,9 +73,12 @@ export function MessageResponse({
   ...props
 }: MessageResponseProps) {
   return (
-    <div className={cn('prose prose-sm dark:prose-invert max-w-none', className)} {...props}>
-      {children}
-    </div>
+    <Streamdown
+      className={cn('prose prose-sm dark:prose-invert max-w-none', className)}
+      {...props}
+    >
+      {children ?? ''}
+    </Streamdown>
   );
 }
 

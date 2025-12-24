@@ -69,7 +69,7 @@ export function AppSidebar() {
     }
   };
 
-  const isCustomSectionActive =
+  const _isCustomSectionActive =
     pathname.startsWith("/tools/custom/") || pathname === "/tools/generate";
 
   return (
@@ -100,10 +100,7 @@ export function AppSidebar() {
         {/* Custom Tools Section - At the top for visibility */}
         <SidebarGroup className="p-0">
           <SidebarMenu>
-            <Collapsible
-              defaultOpen={isCustomSectionActive || customTools.length > 0}
-              className="group/collapsible"
-            >
+            <Collapsible defaultOpen className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton className="px-3">

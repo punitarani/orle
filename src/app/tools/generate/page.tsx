@@ -9,6 +9,7 @@ import {
   Copy,
   Loader2,
   Play,
+  RefreshCcw,
   RotateCcw,
   Save,
   Sparkles,
@@ -16,16 +17,17 @@ import {
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Loader } from "@/components/ai-elements/loader";
 import {
   Message,
+  MessageAction,
+  MessageActions,
   MessageContent,
   MessageResponse,
 } from "@/components/ai-elements/message";
@@ -273,6 +275,7 @@ export default function ToolGeneratePage() {
   const [isTesting, setIsTesting] = useState(false);
   const [testOptions, setTestOptions] = useState<Record<string, unknown>>({});
   const [activeTab, setActiveTab] = useState<"agent" | "tool">("agent");
+  const [toolPanelTab, setToolPanelTab] = useState<"test" | "code">("test");
 
   const transport = useMemo(
     () =>
@@ -286,6 +289,50 @@ export default function ToolGeneratePage() {
     transport,
   });
 
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => m.role !== "system"),
+    [messages],
+  );
+
+  const lastUserText = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== "user") continue;
+      for (let j = m.parts.length - 1; j >= 0; j--) {
+        const part = m.parts[j];
+        if (part.type === "text" && part.text.trim()) return part.text;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const handleRetry = useCallback(async () => {
+    if (!lastUserText) return;
+
+    // Remove the failed assistant message AND the last user message
+    // Find the last user message index
+    let lastUserIndex = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        lastUserIndex = i;
+        break;
+      }
+    }
+
+    // Remove everything from the last user message onwards
+    // This includes the user message and any failed assistant responses
+    if (lastUserIndex !== -1) {
+      const cleanMessages = messages.slice(0, lastUserIndex);
+      setMessages(cleanMessages);
+
+      // Wait for state to update before sending
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    // Now retry - sendMessage will create a fresh user message
+    await sendMessage({ text: lastUserText });
+  }, [lastUserText, sendMessage, messages, setMessages]);
+
   const handleReset = useCallback(() => {
     setMessages([]);
     setLastValidTool(null);
@@ -294,6 +341,7 @@ export default function ToolGeneratePage() {
     setTestError(undefined);
     setTestOptions({});
     setActiveTab("agent");
+    setToolPanelTab("test");
   }, [setMessages]);
 
   const handleSave = async () => {
@@ -320,8 +368,9 @@ export default function ToolGeneratePage() {
     }
   };
 
-  const handleTest = async () => {
-    if (!lastValidTool) return;
+  const handleTest = async (toolOverride?: CustomToolDefinitionGenerated) => {
+    const toolToTest = toolOverride ?? lastValidTool;
+    if (!toolToTest) return;
 
     setIsTesting(true);
     setTestOutput("");
@@ -330,14 +379,14 @@ export default function ToolGeneratePage() {
     try {
       // Build options from defaults merged with user selections
       const mergedOptions: Record<string, unknown> = {};
-      if (lastValidTool.options) {
-        for (const opt of lastValidTool.options) {
+      if (toolToTest.options) {
+        for (const opt of toolToTest.options) {
           mergedOptions[opt.id] = testOptions[opt.id] ?? opt.default;
         }
       }
 
       const result = await executeTransform(
-        lastValidTool.transformCode,
+        toolToTest.transformCode,
         testInput,
         mergedOptions,
       );
@@ -476,18 +525,20 @@ export default function ToolGeneratePage() {
   }, [messages, extractToolInfo]);
 
   return (
-    <div className="flex flex-col -m-6 h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col -m-6 h-[calc(100vh-3.5rem)] overflow-x-hidden">
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b px-4 py-2 shrink-0 bg-background">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2 shrink-0 bg-background">
+        <div className="flex min-w-0 items-center gap-2">
           <Sparkles className="size-4 text-primary" />
-          <h1 className="text-sm font-medium">Generate Custom Tool</h1>
+          <h1 className="min-w-0 truncate text-sm font-medium">
+            Generate Custom Tool
+          </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {messages.length > 0 && (
             <Button variant="ghost" size="sm" onClick={handleReset}>
               <RotateCcw className="size-3.5 mr-1.5" />
-              Start Over
+              Reset
             </Button>
           )}
           {lastValidTool && (
@@ -500,7 +551,7 @@ export default function ToolGeneratePage() {
               ) : (
                 <>
                   <Save className="size-3.5 mr-1.5" />
-                  Save Tool
+                  Save
                 </>
               )}
             </Button>
@@ -515,7 +566,8 @@ export default function ToolGeneratePage() {
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as "agent" | "tool")}
           >
-            <TabsList className="w-full grid grid-cols-2">
+            {/* TabsList defaults to inline-flex + w-fit, so force grid/full-width on mobile */}
+            <TabsList className="!grid !w-full grid-cols-2">
               <TabsTrigger value="agent">Agent</TabsTrigger>
               <TabsTrigger value="tool">Tool</TabsTrigger>
             </TabsList>
@@ -593,107 +645,148 @@ export default function ToolGeneratePage() {
           ) : (
             /* Conversation with messages - scrollable only when content overflows */
             <Conversation className="flex-1">
-              <ConversationContent className="p-6 max-w-3xl mx-auto">
-                {messages
-                  .filter((m) => m.role !== "system")
-                  .map((message) => {
-                    const { tool, validation } = extractToolInfo(message.parts);
-                    const role = message.role as "user" | "assistant";
+              <ConversationContent className="max-w-3xl mx-auto p-4 sm:p-6">
+                {visibleMessages.map((message, messageIndex) => {
+                  const { tool, validation } = extractToolInfo(message.parts);
+                  const role = message.role as "user" | "assistant";
 
-                    // Check for in-progress tool calls
-                    const pendingToolCalls = message.parts.filter(
-                      (p) =>
-                        p.type.startsWith("tool-") &&
-                        "state" in p &&
-                        (p.state === "input-streaming" ||
-                          p.state === "input-available"),
-                    );
+                  // Check for in-progress tool calls
+                  const pendingToolCalls = message.parts.filter(
+                    (p) =>
+                      p.type.startsWith("tool-") &&
+                      "state" in p &&
+                      (p.state === "input-streaming" ||
+                        p.state === "input-available"),
+                  );
 
-                    return (
-                      <Fragment key={message.id}>
-                        <Message from={role}>
-                          <MessageContent from={role}>
-                            {message.parts.map((part, i) => {
-                              if (part.type === "text") {
-                                return (
-                                  <MessageResponse key={`${message.id}-${i}`}>
-                                    {part.text}
-                                  </MessageResponse>
-                                );
-                              }
-                              return null;
-                            })}
-                          </MessageContent>
-                        </Message>
+                  const turnText = message.parts
+                    .filter((p) => p.type === "text")
+                    .map((p) => p.text)
+                    .join("\n\n");
 
-                        {/* Show pending tool calls */}
-                        {pendingToolCalls.length > 0 &&
-                          role === "assistant" && (
-                            <div className="mt-3 mb-4 flex items-center gap-2 text-muted-foreground">
-                              <Loader2 className="size-4 animate-spin" />
-                              <span className="text-sm">
-                                {pendingToolCalls.some((p) =>
-                                  p.type.includes("generate"),
-                                )
-                                  ? "Generating tool definition..."
-                                  : "Validating tool..."}
-                              </span>
-                            </div>
-                          )}
+                  const isLastVisibleMessage =
+                    messageIndex === visibleMessages.length - 1;
 
-                        {tool && role === "assistant" && (
-                          <div className="mt-3 mb-4">
-                            <ToolPreviewCard
-                              tool={tool}
-                              onTest={() => {
-                                setLastValidTool(tool);
-                                handleTest();
-                              }}
-                              isTesting={isTesting}
-                            />
+                  return (
+                    <div key={message.id} className="space-y-2">
+                      {/* Render each text part as its own bubble (matches AI SDK recommended pattern) */}
+                      {message.parts.map((part, i) => {
+                        if (part.type !== "text") return null;
+
+                        return (
+                          <Message key={`${message.id}-${i}`} from={role}>
+                            <MessageContent from={role}>
+                              <MessageResponse parseIncompleteMarkdown>
+                                {part.text}
+                              </MessageResponse>
+                            </MessageContent>
+                          </Message>
+                        );
+                      })}
+
+                      {tool && role === "assistant" && (
+                        <div className="mt-2">
+                          <ToolPreviewCard
+                            tool={tool}
+                            onTest={() => {
+                              if (isMobile) setActiveTab("tool");
+                              setToolPanelTab("test");
+                              setLastValidTool(tool);
+                              handleTest(tool);
+                            }}
+                            isTesting={isTesting}
+                          />
+                        </div>
+                      )}
+
+                      {/* Show validating spinner below the tool card */}
+                      {pendingToolCalls.length > 0 &&
+                        role === "assistant" &&
+                        !validation && (
+                          <div className="mt-2 flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="size-4 animate-spin" />
+                            <span className="text-sm">
+                              {pendingToolCalls.some((p) =>
+                                p.type.includes("generate"),
+                              )
+                                ? "Generating tool definition..."
+                                : "Validating tool..."}
+                            </span>
                           </div>
                         )}
 
-                        {validation && role === "assistant" && (
-                          <div className="mt-3 mb-4">
-                            <ValidationResult
-                              valid={validation.valid}
-                              issues={validation.issues}
-                              securityConcerns={validation.securityConcerns}
-                              suggestions={validation.suggestions}
-                            />
-                          </div>
-                        )}
-                      </Fragment>
-                    );
-                  })}
+                      {validation && role === "assistant" && (
+                        <div className="mt-2">
+                          <ValidationResult
+                            valid={validation.valid}
+                            issues={validation.issues}
+                            securityConcerns={validation.securityConcerns}
+                            suggestions={validation.suggestions}
+                          />
+                        </div>
+                      )}
 
-                {(status === "streaming" || status === "submitted") && (
-                  <div className="flex items-center gap-2 py-4 text-muted-foreground">
-                    <Loader size={16} />
-                    <span className="text-sm">
-                      {status === "submitted"
-                        ? "Sending..."
-                        : messages.length === 1
-                          ? "Generating tool..."
-                          : "Processing..."}
-                    </span>
-                  </div>
-                )}
+                      {/* Actions: only once, at the bottom of the entire conversation turn */}
+                      {role === "assistant" && isLastVisibleMessage && (
+                        <MessageActions className="mt-1">
+                          <MessageAction
+                            tooltip="Retry"
+                            label="Retry"
+                            onClick={handleRetry}
+                            disabled={!lastUserText || status === "streaming"}
+                          >
+                            <RefreshCcw className="size-3" />
+                          </MessageAction>
+                          <MessageAction
+                            tooltip="Copy"
+                            label="Copy"
+                            onClick={() =>
+                              navigator.clipboard.writeText(turnText)
+                            }
+                            disabled={!turnText.trim()}
+                          >
+                            <Copy className="size-3" />
+                          </MessageAction>
+                        </MessageActions>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {error && (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-                    <p className="font-medium">Error</p>
-                    <p className="text-sm">{error.message}</p>
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 space-y-3">
+                    <div className="text-destructive">
+                      <p className="font-medium">Something went wrong</p>
+                      <p className="text-sm opacity-90">
+                        The model returned an invalid tool call while streaming.
+                        You can retry safely.
+                      </p>
+                      <p className="text-xs opacity-70 mt-1">{error.message}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRetry}
+                        disabled={!lastUserText || status === "streaming"}
+                      >
+                        <RefreshCcw className="size-3.5 mr-1.5" />
+                        Retry
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleReset}>
+                        <RotateCcw className="size-3.5 mr-1.5" />
+                        Reset
+                      </Button>
+                    </div>
                   </div>
                 )}
               </ConversationContent>
-              <ConversationScrollButton />
+              <ConversationScrollButton className="bottom-6 safe-bottom" />
             </Conversation>
           )}
 
           {/* Input Area */}
-          <div className="border-t p-4 shrink-0">
+          <div className="border-t p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(1rem+env(safe-area-inset-bottom))] shrink-0">
             <div className="max-w-3xl mx-auto">
               <PromptInput
                 onSubmit={async (msg) => {
@@ -705,20 +798,20 @@ export default function ToolGeneratePage() {
                 maxLength={1000}
                 showCharacterCount="near-limit"
               >
-                <div className="flex items-end gap-2 flex-1">
-                  <PromptInputTextarea
-                    placeholder={
-                      messages.length === 0
-                        ? "Describe the tool you want to create..."
-                        : "Ask for changes, improvements, or create a new tool..."
-                    }
-                    className="min-h-[60px] flex-1"
-                  />
-                  <PromptInputSubmit
-                    status={status === "streaming" ? "streaming" : "ready"}
-                  />
-                </div>
-                <PromptInputCharacterCount className="self-end" />
+                <PromptInputTextarea
+                  placeholder={
+                    messages.length === 0
+                      ? "Describe the tool you want to create..."
+                      : "Ask for changes, improvements, or create a new tool..."
+                  }
+                  // In-field submit button lives at bottom-right
+                  className="min-h-[60px] pr-12"
+                />
+                <PromptInputSubmit
+                  status={status === "streaming" ? "streaming" : "ready"}
+                  className="absolute bottom-2 right-2"
+                />
+                <PromptInputCharacterCount className="self-end pr-12" />
               </PromptInput>
             </div>
           </div>
@@ -732,15 +825,18 @@ export default function ToolGeneratePage() {
               isMobile ? (activeTab === "tool" ? "w-full" : "hidden") : "w-96",
             )}
           >
-            <Tabs defaultValue="test" className="flex flex-col h-full">
-              <TabsList className="mx-4 mt-4 shrink-0">
-                <TabsTrigger value="test" className="flex-1">
-                  Test
-                </TabsTrigger>
-                <TabsTrigger value="code" className="flex-1">
-                  Code
-                </TabsTrigger>
-              </TabsList>
+            <Tabs
+              value={toolPanelTab}
+              onValueChange={(v) => setToolPanelTab(v as "test" | "code")}
+              className="flex flex-col h-full"
+            >
+              <div className="px-4 pt-4 shrink-0 flex justify-end">
+                {/* Compact tabs aligned to the right */}
+                <TabsList>
+                  <TabsTrigger value="test">Test</TabsTrigger>
+                  <TabsTrigger value="code">Code</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent
                 value="test"
@@ -777,7 +873,7 @@ export default function ToolGeneratePage() {
                       className="min-h-[120px]"
                     />
                     <Button
-                      onClick={handleTest}
+                      onClick={() => handleTest()}
                       disabled={!testInput || isTesting}
                       className="self-end"
                     >
@@ -797,7 +893,7 @@ export default function ToolGeneratePage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleTest}
+                        onClick={() => handleTest()}
                         className="h-8"
                       >
                         <Play className="mr-2 size-3.5" />
