@@ -6,8 +6,8 @@ import { tools } from "@/lib/tools/registry";
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-10 sm:space-y-12">
-      <Card className="relative overflow-hidden rounded-2xl border text-center sm:rounded-3xl">
-        <div className="pointer-events-none absolute inset-0 z-0">
+      <Card className="relative overflow-visible rounded-2xl border text-center sm:rounded-3xl">
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl sm:rounded-3xl">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-background to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(90%_80%_at_50%_-10%,rgba(14,165,233,0.3),rgba(15,23,42,0))]" />
           <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_85%_20%,rgba(56,189,248,0.2),rgba(15,23,42,0))]" />
