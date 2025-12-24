@@ -4,9 +4,11 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import {
   AlertCircle,
+  ArrowRight,
   CheckCircle2,
   Code2,
   Copy,
+  ExternalLink,
   Loader2,
   Play,
   RefreshCcw,
@@ -16,6 +18,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { nanoid } from "nanoid";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -37,6 +40,7 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
+import { ToolExecutionCard } from "@/components/tools/tool-execution-card";
 import { ToolInput } from "@/components/tools/tool-input";
 import { ToolOptions } from "@/components/tools/tool-options";
 import { ToolOutput } from "@/components/tools/tool-output";
@@ -50,6 +54,7 @@ import {
   generateUniqueSlug,
   saveCustomTool,
 } from "@/lib/tools/custom-tools-db";
+import { getToolMetaBySlug } from "@/lib/tools/manifest";
 import { executeTransform } from "@/lib/tools/safe-executor";
 import type {
   CustomToolDefinition,
@@ -142,6 +147,121 @@ function ToolPreviewCard({
             Copy JSON
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Component to render existing tool redirect suggestion
+function ToolRedirectCard({
+  slug,
+  reason,
+  relatedTools,
+  onGenerateAnyway,
+}: {
+  slug: string;
+  reason: string;
+  relatedTools?: string[];
+  onGenerateAnyway: () => void;
+}) {
+  const router = useRouter();
+  const toolMeta = getToolMetaBySlug(slug);
+
+  if (!toolMeta) {
+    return null;
+  }
+
+  const handleGoToTool = () => {
+    router.push(`/tools/${slug}`);
+  };
+
+  const relatedToolsMeta = relatedTools
+    ?.map((s) => getToolMetaBySlug(s))
+    .filter((meta): meta is NonNullable<typeof meta> => Boolean(meta))
+    .slice(0, 3);
+
+  return (
+    <Card className="border-green-500/30 bg-green-500/5">
+      <CardHeader className="pb-3">
+        <div className="flex items-start gap-3">
+          <div className="mt-1 rounded-full bg-green-500/10 p-2">
+            <CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <CardTitle className="text-lg">Existing Tool Found</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              This tool already exists in orle.dev
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border bg-card p-4 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="font-semibold">{toolMeta.name}</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {toolMeta.description}
+              </p>
+            </div>
+            <Badge variant="secondary" className="shrink-0 text-xs">
+              {toolMeta.section}
+            </Badge>
+          </div>
+
+          {toolMeta.aliases && toolMeta.aliases.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {toolMeta.aliases.slice(0, 3).map((alias) => (
+                <span
+                  key={alias}
+                  className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono"
+                >
+                  {alias}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg bg-muted/50 p-3">
+          <p className="text-sm">
+            <span className="font-medium">Match reason:</span> {reason}
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={handleGoToTool} className="flex-1">
+            <ExternalLink className="size-4 mr-2" />
+            Go to Tool
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onGenerateAnyway}
+            className="flex-1"
+          >
+            Generate Custom Tool Anyway
+          </Button>
+        </div>
+
+        {relatedToolsMeta && relatedToolsMeta.length > 0 && (
+          <div className="pt-2 border-t space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              Related tools you might find useful:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {relatedToolsMeta.map((tool) => (
+                <Link
+                  key={tool.slug}
+                  href={`/tools/${tool.slug}`}
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  {tool.name}
+                  <ArrowRight className="size-3" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -261,6 +381,26 @@ function CodeViewer({ code, title }: { code: string; title: string }) {
       </pre>
     </div>
   );
+}
+
+// Filter out redundant progress update messages
+const PROGRESS_PATTERNS = [
+  /^searching existing tools/i,
+  /^generating tool definition/i,
+  /^validating tool/i,
+  /^testing runtime/i,
+  /^✓ tool ready/i,
+  /^understood\..*generating custom/i,
+  /^tool executed successfully/i,
+  /^i'll search/i,
+  /^let me/i,
+  /^now let me/i,
+];
+
+function shouldShowTextMessage(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  return !PROGRESS_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
 export default function ToolGeneratePage() {
@@ -435,6 +575,11 @@ export default function ToolGeneratePage() {
         securityConcerns?: string[] | null;
         suggestions?: string[] | null;
       } | null;
+      redirect: {
+        slug: string;
+        reason: string;
+        relatedTools?: string[];
+      } | null;
     } => {
       let tool: CustomToolDefinitionGenerated | null = null;
       let validation: {
@@ -442,6 +587,11 @@ export default function ToolGeneratePage() {
         issues?: string[];
         securityConcerns?: string[] | null;
         suggestions?: string[] | null;
+      } | null = null;
+      let redirect: {
+        slug: string;
+        reason: string;
+        relatedTools?: string[];
       } | null = null;
 
       for (const part of parts) {
@@ -455,6 +605,27 @@ export default function ToolGeneratePage() {
           };
 
           const toolName = part.type.replace("tool-", "");
+
+          // Check for redirect suggestions
+          if (
+            toolName === "suggestExistingTool" &&
+            toolPart.state === "output-available" &&
+            toolPart.output
+          ) {
+            const result = toolPart.output as {
+              type?: string;
+              slug?: string;
+              reason?: string;
+              relatedTools?: string[];
+            };
+            if (result.type === "redirect" && result.slug && result.reason) {
+              redirect = {
+                slug: result.slug,
+                reason: result.reason,
+                relatedTools: result.relatedTools,
+              };
+            }
+          }
 
           // Check for completed tool calls (state is 'output-available')
           if (
@@ -497,7 +668,7 @@ export default function ToolGeneratePage() {
         }
       }
 
-      return { tool, validation };
+      return { tool, validation, redirect };
     },
     [],
   );
@@ -649,7 +820,9 @@ export default function ToolGeneratePage() {
             <Conversation className="flex-1">
               <ConversationContent className="max-w-3xl mx-auto p-4 sm:p-6">
                 {visibleMessages.map((message, messageIndex) => {
-                  const { tool, validation } = extractToolInfo(message.parts);
+                  const { tool, validation, redirect } = extractToolInfo(
+                    message.parts,
+                  );
                   const role = message.role as "user" | "assistant";
 
                   // Check for in-progress tool calls
@@ -671,22 +844,118 @@ export default function ToolGeneratePage() {
 
                   return (
                     <div key={message.id} className="space-y-2">
+                      {/* Render tool execution cards */}
+                      {message.parts
+                        .filter((p) => p.type === "tool-call")
+                        .map((toolPart, toolIdx) => {
+                          // Type guard: we filtered for tool-call type above
+                          if (
+                            toolPart.type === "tool-call" &&
+                            "toolName" in toolPart &&
+                            "args" in toolPart &&
+                            typeof toolPart.toolName === "string" &&
+                            typeof toolPart.args === "object" &&
+                            toolPart.args !== null
+                          ) {
+                            const toolName = toolPart.toolName;
+                            const args = toolPart.args as Record<
+                              string,
+                              unknown
+                            >;
+                            const toolCallId = toolPart.toolCallId;
+
+                            // Find the corresponding tool result
+                            const toolResult = message.parts.find(
+                              (p) =>
+                                p.type === "tool-result" &&
+                                "toolCallId" in p &&
+                                p.toolCallId === toolCallId,
+                            );
+
+                            const result =
+                              toolResult && "result" in toolResult
+                                ? (toolResult.result as string | object)
+                                : undefined;
+
+                            return (
+                              <ToolExecutionCard
+                                key={`tool-${message.id}-${toolIdx}`}
+                                name={toolName}
+                                status={
+                                  result !== undefined
+                                    ? "output-available"
+                                    : "input-available"
+                                }
+                                parameters={args}
+                                result={result}
+                              />
+                            );
+                          }
+                          return null;
+                        })}
+
                       {/* Render each text part as its own bubble (matches AI SDK recommended pattern) */}
-                      {message.parts.map((part, i) => {
-                        if (part.type !== "text") return null;
+                      {message.parts
+                        .filter((p) => p.type === "text")
+                        .map((part, i) => {
+                          const textPart = part as {
+                            type: "text";
+                            text: string;
+                          };
 
-                        return (
-                          <Message key={`${message.id}-${i}`} from={role}>
-                            <MessageContent from={role}>
-                              <MessageResponse parseIncompleteMarkdown>
-                                {part.text}
-                              </MessageResponse>
-                            </MessageContent>
-                          </Message>
-                        );
-                      })}
+                          // Filter out progress messages
+                          if (!shouldShowTextMessage(textPart.text)) {
+                            return null;
+                          }
 
-                      {tool && role === "assistant" && (
+                          return (
+                            <Message key={`${message.id}-${i}`} from={role}>
+                              <MessageContent from={role}>
+                                <MessageResponse parseIncompleteMarkdown>
+                                  {textPart.text}
+                                </MessageResponse>
+                              </MessageContent>
+                            </Message>
+                          );
+                        })}
+
+                      {redirect && role === "assistant" && (
+                        <div className="mt-2">
+                          <ToolRedirectCard
+                            slug={redirect.slug}
+                            reason={redirect.reason}
+                            relatedTools={redirect.relatedTools}
+                            onGenerateAnyway={() => {
+                              // Remove redirect message and continue generation
+                              const lastUserIndex = messages.findIndex(
+                                (m, idx) =>
+                                  idx < messageIndex && m.role === "user",
+                              );
+                              if (lastUserIndex !== -1) {
+                                const userMsg = messages[lastUserIndex];
+                                const userText = userMsg.parts
+                                  .filter((p) => p.type === "text")
+                                  .map(
+                                    (p) =>
+                                      (p as { type: "text"; text: string })
+                                        .text,
+                                  )
+                                  .join(" ");
+
+                                // Reset and ask to generate anyway
+                                setMessages([]);
+                                setTimeout(() => {
+                                  sendMessage({
+                                    text: `${userText}\n\nNote: I want to generate a custom tool anyway, not use the existing tool.`,
+                                  });
+                                }, 100);
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {tool && role === "assistant" && !redirect && (
                         <div className="mt-2">
                           <ToolPreviewCard
                             tool={tool}

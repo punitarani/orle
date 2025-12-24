@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 import { createModel, GENERATOR_MODEL } from "@/lib/ai/model";
 import { executeTransform } from "@/lib/tools/safe-executor";
+import toolsData from "@/lib/tools/tools.generated.json";
 import {
   type CustomToolDefinitionGenerated,
   customToolDefinitionSchema,
@@ -14,6 +15,65 @@ import {
 } from "@/lib/tools/types";
 
 export const maxDuration = 300;
+
+// Search and score tools based on query relevance
+function searchToolsByQuery(query: string, limit = 5) {
+  const normalized = query.toLowerCase().trim();
+
+  interface ScoredTool {
+    tool: (typeof toolsData)[0];
+    score: number;
+  }
+
+  const scored: ScoredTool[] = toolsData.map((tool) => {
+    let score = 0;
+    const toolName = tool.name.toLowerCase();
+    const toolDesc = tool.description.toLowerCase();
+    const toolAliases = tool.aliases?.map((a) => a.toLowerCase()) || [];
+
+    // Exact name match (highest priority)
+    if (toolName === normalized) score += 100;
+    else if (toolName.includes(normalized)) score += 50;
+    else if (normalized.includes(toolName)) score += 30;
+
+    // Description match
+    if (toolDesc.includes(normalized)) score += 40;
+    else if (
+      normalized
+        .split(" ")
+        .some((word) => word.length > 3 && toolDesc.includes(word))
+    )
+      score += 20;
+
+    // Alias match (high priority)
+    if (toolAliases.some((alias) => alias === normalized)) score += 90;
+    else if (
+      toolAliases.some(
+        (alias) => alias.includes(normalized) || normalized.includes(alias),
+      )
+    )
+      score += 45;
+
+    // Query words match
+    const queryWords = normalized.split(/\s+/).filter((w) => w.length > 2);
+    queryWords.forEach((word) => {
+      if (toolName.includes(word)) score += 10;
+      if (toolDesc.includes(word)) score += 8;
+      if (toolAliases.some((alias) => alias.includes(word))) score += 12;
+    });
+
+    return { tool, score };
+  });
+
+  return scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((s) => ({
+      ...s.tool,
+      matchScore: s.score,
+    }));
+}
 
 // Dangerous patterns to check for in transform code
 const DANGEROUS_PATTERNS = [
@@ -243,12 +303,39 @@ const TOOL_EXAMPLES = `
 const AGENT_INSTRUCTIONS = `You are an expert developer tool generator for orle.dev. Your job is to create browser-based developer tools that run entirely client-side.
 
 ## Your Workflow
-1. When the user describes a tool, use the generateToolDefinition tool to create it
-2. Always validate your generated tool using the validateToolDefinition tool
-3. If validation passes, test it with the testToolRuntime tool to ensure it works
-4. If either validation or runtime test fails, analyze the errors and regenerate with fixes
-5. Continue this generate-validate-test loop until everything works correctly
-6. Maximum 5 attempts - if you can't create a valid tool, explain what's wrong
+1. FIRST: Call searchExistingTools to check if a similar tool already exists
+2. Analyze the search results:
+   - If you find a 1:1 or very close match (score > 80): Call suggestExistingTool to redirect the user
+   - If you find similar tools (score 40-80): Use their patterns as reference when generating (no need to narrate this)
+   - If no relevant matches (score < 40): Generate from scratch
+3. When generating: Use the generateToolDefinition tool to create it
+4. Always validate your generated tool using the validateToolDefinition tool
+5. If validation passes, test it with the testToolRuntime tool to ensure it works
+6. If either validation or runtime test fails, analyze the errors and regenerate with fixes
+7. Continue this generate-validate-test loop until everything works correctly
+8. Maximum 5 attempts - if you can't create a valid tool, explain what's wrong
+
+## Response Format
+- Use tools to perform actions (searchExistingTools, generateToolDefinition, validateToolDefinition, testToolRuntime)
+- The tool executions will show visually in the UI with their status and results
+- DO NOT narrate what you're doing (e.g., "I'm searching existing tools...") - the tool UI shows this
+- Only provide text when:
+  * You need to explain a choice or decision
+  * There's an issue that requires explanation
+  * You're declining a restricted request
+- After tools complete successfully, DO NOT provide a summary or closing remarks
+
+Examples:
+✅ Good: Just call searchExistingTools tool → it shows "Searching existing tools..." status automatically
+❌ Bad: "I'm searching existing tools..." (redundant with tool UI)
+
+✅ Good: Call suggestExistingTool for redirect → UI shows existing tool card automatically  
+❌ Bad: "The base64-text tool already does exactly this!" (redundant with redirect card)
+
+✅ Good: After successful test, stop → UI shows "Testing ✓" status
+❌ Bad: "✓ Tool ready to save" (redundant with tool status)
+
+Note: DO NOT provide a summary or conversational closing remarks at the end of the stream.
 
 ## Restrictions
 You MUST NOT create tools that:
@@ -309,11 +396,16 @@ Must return: string | Promise<string> | {type: 'error', message: string}
 ${TOOL_EXAMPLES}
 
 ## Response Format
-After each tool generation or validation, explain what you did:
-- When generating: "I've created a [tool name] that [description]..."
-- When validation passes: "✓ The tool passed validation and is ready to save."
-- When validation fails: "✗ Validation found issues: [list issues]. Let me fix these..."
-- After fix attempt: "I've updated the tool to [describe fix]..."`;
+Provide ONLY brief progress updates. Do NOT explain what the tool does after completion.
+
+Examples of correct responses:
+- "Searching existing tools..."
+- "Generating tool definition..."
+- "Validating tool..."
+- "Testing runtime..."
+- "✓ Tool ready to save"
+
+FORBIDDEN: Do NOT write summaries, feature lists, or explanations after the tool is complete. Stop immediately after "✓ Tool ready to save".`;
 
 // Track validation state across steps
 type AgentContext = {
@@ -321,6 +413,8 @@ type AgentContext = {
   lastValidation: ValidationResult | null;
   runtimeTestPassed: boolean;
   attempts: number;
+  redirectSuggested: boolean;
+  redirectSlug: string | null;
 };
 
 export async function POST(req: Request) {
@@ -366,12 +460,112 @@ export async function POST(req: Request) {
       lastValidation: null,
       runtimeTestPassed: false,
       attempts: 0,
+      redirectSuggested: false,
+      redirectSlug: null,
     };
+
+    // #region agent log
+    fetch("http://127.0.0.1:7243/ingest/0b10539f-e181-467f-85ee-b4017e072901", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "route.ts:POST",
+        message: "Agent instructions",
+        data: {
+          instructionsLength: AGENT_INSTRUCTIONS.length,
+          instructionsPreview: AGENT_INSTRUCTIONS.substring(
+            AGENT_INSTRUCTIONS.length - 300,
+          ),
+        },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        hypothesisId: "A,B",
+      }),
+    }).catch(() => {});
+    // #endregion
 
     const agent = new ToolLoopAgent({
       model,
       instructions: AGENT_INSTRUCTIONS,
       tools: {
+        searchExistingTools: tool({
+          description:
+            "Search existing tools in orle.dev to check if a similar tool already exists. ALWAYS call this FIRST before generating a new tool.",
+          inputSchema: z.object({
+            query: z
+              .string()
+              .describe(
+                "Description of what the user wants to do (e.g., 'convert text to base64', 'generate uuid')",
+              ),
+          }),
+          execute: async ({ query }: { query: string }) => {
+            const results = searchToolsByQuery(query, 5);
+
+            if (results.length === 0) {
+              return {
+                found: false,
+                message: "No similar existing tools found.",
+                results: [],
+              };
+            }
+
+            return {
+              found: true,
+              message: `Found ${results.length} similar tool(s).`,
+              results: results.map((tool) => ({
+                slug: tool.slug,
+                name: tool.name,
+                description: tool.description,
+                aliases: tool.aliases,
+                inputType: tool.inputType,
+                outputType: tool.outputType,
+                matchScore: tool.matchScore,
+                section: tool.section,
+                canonicalSlug: tool.canonicalSlug,
+                options: tool.options,
+              })),
+            };
+          },
+        }),
+        suggestExistingTool: tool({
+          description:
+            "When an existing tool matches the user's request very closely (match score > 80), suggest using it instead of generating a new one. This will redirect the user to the existing tool.",
+          inputSchema: z.object({
+            slug: z
+              .string()
+              .describe("The slug of the existing tool to suggest"),
+            reason: z
+              .string()
+              .describe(
+                "Brief explanation of why this tool matches the request",
+              ),
+            relatedTools: z
+              .array(z.string())
+              .optional()
+              .describe(
+                "Slugs of other related tools the user might find useful",
+              ),
+          }),
+          execute: async ({
+            slug,
+            reason,
+            relatedTools,
+          }: {
+            slug: string;
+            reason: string;
+            relatedTools?: string[];
+          }) => {
+            context.redirectSuggested = true;
+            context.redirectSlug = slug;
+            return {
+              type: "redirect",
+              slug,
+              reason,
+              relatedTools: relatedTools || [],
+              message: `I found an existing tool that matches your request!`,
+            };
+          },
+        }),
         generateToolDefinition: tool({
           description:
             "Generate a tool definition based on the user description. Use this to create or update a tool.",
@@ -411,6 +605,24 @@ export async function POST(req: Request) {
             context.lastValidation = result;
 
             if (result.valid) {
+              // #region agent log
+              fetch(
+                "http://127.0.0.1:7243/ingest/0b10539f-e181-467f-85ee-b4017e072901",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    location: "route.ts:validateTool",
+                    message: "Validation passed",
+                    data: { valid: true },
+                    timestamp: Date.now(),
+                    sessionId: "debug-session",
+                    hypothesisId: "D",
+                  }),
+                },
+              ).catch(() => {});
+              // #endregion
+
               return {
                 valid: true,
                 message: "Tool passed all validation checks!",
@@ -489,6 +701,23 @@ export async function POST(req: Request) {
               }
 
               context.runtimeTestPassed = true;
+              // #region agent log
+              fetch(
+                "http://127.0.0.1:7243/ingest/0b10539f-e181-467f-85ee-b4017e072901",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    location: "route.ts:testToolRuntime",
+                    message: "Runtime test passed",
+                    data: { runtimeTestPassed: true },
+                    timestamp: Date.now(),
+                    sessionId: "debug-session",
+                    hypothesisId: "D",
+                  }),
+                },
+              ).catch(() => {});
+              // #endregion
               return {
                 success: true,
                 result:
@@ -509,6 +738,40 @@ export async function POST(req: Request) {
         }),
       },
       stopWhen: () => {
+        // #region agent log
+        const shouldStop =
+          context.redirectSuggested ||
+          (context.lastValidation?.valid === true &&
+            context.runtimeTestPassed === true) ||
+          context.attempts >= 5;
+        fetch(
+          "http://127.0.0.1:7243/ingest/0b10539f-e181-467f-85ee-b4017e072901",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              location: "route.ts:stopWhen",
+              message: "stopWhen called",
+              data: {
+                redirectSuggested: context.redirectSuggested,
+                validationValid: context.lastValidation?.valid,
+                runtimePassed: context.runtimeTestPassed,
+                attempts: context.attempts,
+                shouldStop,
+              },
+              timestamp: Date.now(),
+              sessionId: "debug-session",
+              hypothesisId: "C,E",
+            }),
+          },
+        ).catch(() => {});
+        // #endregion
+
+        // Stop if redirect was suggested
+        if (context.redirectSuggested) {
+          return true;
+        }
+
         // Stop if validation passed AND runtime test succeeded
         if (
           context.lastValidation?.valid === true &&

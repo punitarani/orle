@@ -354,195 +354,202 @@ export default function CustomToolPage({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="size-8">
-                <ArrowLeft className="size-4" />
-              </Button>
-            </Link>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {tool.name}
-            </h1>
-            <Badge variant="secondary" className="text-xs">
-              Custom
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground pl-10">
-            {tool.description}
-          </p>
-          {tool.aliases.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-1 pl-10">
-              {tool.aliases.slice(0, 4).map((alias) => (
-                <Badge
-                  key={alias}
-                  variant="secondary"
-                  className="text-xs font-normal"
-                >
-                  {alias}
-                </Badge>
-              ))}
+    <div className="flex flex-col h-[100vh] md:h-auto -m-6 md:m-0">
+      {/* Header - fixed on mobile */}
+      <div className="shrink-0 border-b bg-background p-6 md:border-0 md:bg-transparent md:p-0 md:pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <Link href="/">
+                <Button variant="ghost" size="icon" className="size-8">
+                  <ArrowLeft className="size-4" />
+                </Button>
+              </Link>
+              <h1 className="text-2xl font-semibold tracking-tight truncate">
+                {tool.name}
+              </h1>
+              <Badge variant="secondary" className="text-xs shrink-0">
+                Custom
+              </Badge>
             </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="h-8"
-          >
-            <RotateCcw className="size-4" />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Custom Tool</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete &quot;{tool.name}&quot;? This
-                  action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <p className="text-sm text-muted-foreground pl-10 line-clamp-2">
+              {tool.description}
+            </p>
+            {tool.aliases.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1 pl-10">
+                {tool.aliases.slice(0, 4).map((alias) => (
+                  <Badge
+                    key={alias}
+                    variant="secondary"
+                    className="text-xs font-normal"
+                  >
+                    {alias}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="h-8"
+            >
+              <RotateCcw className="size-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-destructive hover:text-destructive"
                 >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Trash2 className="size-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Custom Tool</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete &quot;{tool.name}&quot;?
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </div>
 
-      {/* Options */}
-      {tool.options && tool.options.length > 0 && (
-        <ToolOptions
-          options={toToolOptions(tool.options) ?? []}
-          values={options}
-          onChange={handleOptionChange}
-        />
-      )}
-
-      {/* Dual Input for diff tools */}
-      {tool.inputType === "dual" && (
-        <>
-          <DualInput
-            value1={input}
-            value2={input2}
-            onChange1={handleInputChange}
-            onChange2={handleInput2Change}
-            placeholder1="Enter original text..."
-            placeholder2="Enter modified text..."
-          />
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Output
-              </span>
-              <OutputActions value={output} />
-            </div>
-            {renderOutput()}
-          </div>
-        </>
-      )}
-
-      {/* Input/Output for non-dual tools */}
-      {tool.inputType !== "dual" && tool.inputType !== "none" && (
-        <div className="grid gap-6 md:grid-cols-2 md:items-start">
-          <div className="flex flex-col gap-2">
-            <div className="flex h-7 items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Input
-              </span>
-              {file && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7"
-                  onClick={handleClearFile}
-                >
-                  <X className="size-3.5" />
-                </Button>
-              )}
-            </div>
-            <ToolInput
-              ref={toolInputRef}
-              type={tool.inputType}
-              value={input}
-              onChange={handleInputChange}
-              onFileChange={handleFileChange}
-              placeholder={tool.inputPlaceholder ?? undefined}
+      {/* Scrollable content on mobile */}
+      <div className="flex-1 min-h-0 overflow-auto md:overflow-visible p-6 md:p-0">
+        <div className="flex flex-col gap-6">
+          {/* Options */}
+          {tool.options && tool.options.length > 0 && (
+            <ToolOptions
+              options={toToolOptions(tool.options) ?? []}
+              values={options}
+              onChange={handleOptionChange}
             />
-            {tool.inputType === "text" && (
-              <Button
-                onClick={runTransform}
-                disabled={!input || isProcessing}
-                className="self-end"
-              >
-                <Play className="mr-2 size-4" />
-                Run
-              </Button>
-            )}
-          </div>
+          )}
 
-          <div className="flex flex-col gap-2">
-            <div className="flex h-7 items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Output
-              </span>
-              <OutputActions value={output} />
+          {/* Dual Input for diff tools */}
+          {tool.inputType === "dual" && (
+            <>
+              <DualInput
+                value1={input}
+                value2={input2}
+                onChange1={handleInputChange}
+                onChange2={handleInput2Change}
+                placeholder1="Enter original text..."
+                placeholder2="Enter modified text..."
+              />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Output
+                  </span>
+                  <OutputActions value={output} />
+                </div>
+                {renderOutput()}
+              </div>
+            </>
+          )}
+
+          {/* Input/Output for non-dual tools */}
+          {tool.inputType !== "dual" && tool.inputType !== "none" && (
+            <div className="grid gap-6 md:grid-cols-2 md:items-start">
+              <div className="flex flex-col gap-2">
+                <div className="flex h-7 items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Input
+                  </span>
+                  {file && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7"
+                      onClick={handleClearFile}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <ToolInput
+                  ref={toolInputRef}
+                  type={tool.inputType}
+                  value={input}
+                  onChange={handleInputChange}
+                  onFileChange={handleFileChange}
+                  placeholder={tool.inputPlaceholder ?? undefined}
+                />
+                {tool.inputType === "text" && (
+                  <Button
+                    onClick={runTransform}
+                    disabled={!input || isProcessing}
+                    className="self-end"
+                  >
+                    <Play className="mr-2 size-4" />
+                    Run
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex h-7 items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Output
+                  </span>
+                  <OutputActions value={output} />
+                </div>
+                {renderOutput()}
+              </div>
             </div>
-            {renderOutput()}
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Generator tools (no input) */}
-      {tool.inputType === "none" && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Output
-              </span>
-              <OutputActions value={output} />
+          {/* Generator tools (no input) */}
+          {tool.inputType === "none" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Output
+                  </span>
+                  <OutputActions value={output} />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runTransform}
+                  className="h-8"
+                >
+                  <Play className="mr-2 size-3.5" />
+                  Generate
+                </Button>
+              </div>
+              {renderOutput()}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={runTransform}
-              className="h-8"
-            >
-              <Play className="mr-2 size-3.5" />
-              Generate
-            </Button>
-          </div>
-          {renderOutput()}
-        </div>
-      )}
+          )}
 
-      {/* Examples */}
-      {tool.examples && tool.examples.length > 0 && (
-        <ToolExamples
-          examples={toToolExamples(tool.examples) ?? []}
-          onLoad={handleLoadExample}
-        />
-      )}
+          {/* Examples */}
+          {tool.examples && tool.examples.length > 0 && (
+            <ToolExamples
+              examples={toToolExamples(tool.examples) ?? []}
+              onLoad={handleLoadExample}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
