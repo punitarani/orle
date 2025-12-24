@@ -681,6 +681,7 @@ function SidebarMenuSubButton({
   size = "md",
   isActive = false,
   className,
+  onClick,
   ...props
 }: React.ComponentProps<"a"> & {
   asChild?: boolean
@@ -688,6 +689,7 @@ function SidebarMenuSubButton({
   isActive?: boolean
 }) {
   const Comp = asChild ? Slot : "a"
+  const { isMobile, setOpenMobile } = useSidebar()
 
   return (
     <Comp
@@ -703,6 +705,27 @@ function SidebarMenuSubButton({
         "group-data-[collapsible=icon]:hidden",
         className
       )}
+      onClick={(event) => {
+        onClick?.(event)
+
+        // On mobile, the sidebar is a Sheet. After selecting a destination,
+        // close the Sheet so the content is immediately visible.
+        if (!isMobile) return
+        if (event.defaultPrevented) return
+        // Only close for primary-button clicks without modifier keys.
+        if (
+          "button" in event &&
+          typeof event.button === "number" &&
+          event.button !== 0
+        ) {
+          return
+        }
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+          return
+        }
+
+        setOpenMobile(false)
+      }}
       {...props}
     />
   )
