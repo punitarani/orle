@@ -1,16 +1,51 @@
+import { md5 } from "@noble/hashes/legacy.js";
+import { base58 } from "@scure/base";
+import { bech32, bech32m } from "bech32";
+import {
+  base64ToBytes,
+  bytesToBase64,
+  bytesToHex,
+  bytesToUtf8,
+  hexToBytes,
+  normalizeBase64,
+  utf8ToBytes,
+} from "../lib/bytes-codec";
 import type { ToolDefinition } from "../types";
 
 export const cryptoTools: ToolDefinition[] = [
   {
-    slug: "hash-text",
-    name: "Hash Generator (Text)",
-    description: "Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes",
+    slug: "crypto-suite",
+    name: "Crypto & Hashing Suite",
+    description: "Hashes, HMAC, PBKDF2, AES-GCM, JWT",
     section: "crypto",
-    aliases: ["sha256", "sha512", "md5", "checksum"],
+    aliases: ["hash", "hmac", "jwt", "aes"],
     inputType: "text",
     outputType: "text",
     useWorker: "hash",
+    acceptsFile: true,
+    fileAccept: "*/*",
+    runPolicy: "manual",
     options: [
+      {
+        id: "mode",
+        label: "Mode",
+        type: "select",
+        default: "hash-text",
+        options: [
+          { value: "hash-text", label: "Hash (text)" },
+          { value: "hash-file", label: "Hash (file)" },
+          { value: "hmac", label: "HMAC" },
+          { value: "pbkdf2", label: "PBKDF2" },
+          { value: "aes-encrypt", label: "AES-GCM encrypt" },
+          { value: "aes-decrypt", label: "AES-GCM decrypt" },
+          { value: "jwt-decode", label: "JWT decode" },
+          { value: "jwt-verify", label: "JWT verify (HS*)" },
+          { value: "base58check-encode", label: "Base58Check encode" },
+          { value: "base58check-decode", label: "Base58Check decode" },
+          { value: "bech32-encode", label: "Bech32 encode" },
+          { value: "bech32-decode", label: "Bech32 decode" },
+        ],
+      },
       {
         id: "algorithm",
         label: "Algorithm",
@@ -23,95 +58,7 @@ export const cryptoTools: ToolDefinition[] = [
           { value: "SHA-384", label: "SHA-384" },
           { value: "SHA-512", label: "SHA-512" },
         ],
-      },
-      { id: "uppercase", label: "Uppercase", type: "toggle", default: false },
-    ],
-    transform: async (input, opts) => {
-      const str = String(input);
-      if (!str) return "";
-
-      const algorithm = String(opts.algorithm);
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-
-      // MD5 needs special handling since Web Crypto doesn't support it
-      if (algorithm === "MD5") {
-        return md5(str).then((h) => (opts.uppercase ? h.toUpperCase() : h));
-      }
-
-      const hashBuffer = await crypto.subtle.digest(algorithm, data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      let hex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-
-      if (opts.uppercase) hex = hex.toUpperCase();
-      return hex;
-    },
-  },
-  {
-    slug: "hash-file",
-    name: "File Hash Generator",
-    description: "Generate hash checksums for files",
-    section: "crypto",
-    aliases: ["file-checksum", "file-sha256"],
-    inputType: "file",
-    outputType: "text",
-    useWorker: "hash",
-    options: [
-      {
-        id: "algorithm",
-        label: "Algorithm",
-        type: "select",
-        default: "SHA-256",
-        options: [
-          { value: "SHA-1", label: "SHA-1" },
-          { value: "SHA-256", label: "SHA-256" },
-          { value: "SHA-384", label: "SHA-384" },
-          { value: "SHA-512", label: "SHA-512" },
-        ],
-      },
-    ],
-    transform: async (input, opts) => {
-      if (!(input instanceof File)) {
-        return { type: "error", message: "Please drop a file" };
-      }
-
-      const buffer = await input.arrayBuffer();
-      const algorithm = String(opts.algorithm);
-      const hashBuffer = await crypto.subtle.digest(algorithm, buffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hex = hashArray
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      return [
-        `File: ${input.name}`,
-        `Size: ${formatBytes(input.size)}`,
-        `Algorithm: ${algorithm}`,
-        `Hash: ${hex}`,
-      ].join("\n");
-    },
-  },
-  {
-    slug: "hmac",
-    name: "HMAC Generator",
-    description: "Generate HMAC signatures using various algorithms",
-    section: "crypto",
-    aliases: ["hmac-sha256", "message-auth"],
-    inputType: "text",
-    outputType: "text",
-    options: [
-      { id: "secret", label: "Secret key", type: "text", default: "" },
-      {
-        id: "algorithm",
-        label: "Algorithm",
-        type: "select",
-        default: "SHA-256",
-        options: [
-          { value: "SHA-1", label: "HMAC-SHA-1" },
-          { value: "SHA-256", label: "HMAC-SHA-256" },
-          { value: "SHA-384", label: "HMAC-SHA-384" },
-          { value: "SHA-512", label: "HMAC-SHA-512" },
-        ],
+        visibleWhen: { optionId: "mode", equals: ["hash-text", "hash-file"] },
       },
       {
         id: "output",
@@ -122,609 +69,500 @@ export const cryptoTools: ToolDefinition[] = [
           { value: "hex", label: "Hex" },
           { value: "base64", label: "Base64" },
         ],
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["hash-text", "hash-file", "hmac", "pbkdf2"],
+        },
       },
-    ],
-    transform: async (input, opts) => {
-      const message = String(input);
-      const secret = String(opts.secret);
-      if (!message) return "";
-      if (!secret) return { type: "error", message: "Secret key is required" };
-
-      const encoder = new TextEncoder();
-      const keyData = encoder.encode(secret);
-      const messageData = encoder.encode(message);
-
-      const key = await crypto.subtle.importKey(
-        "raw",
-        keyData,
-        { name: "HMAC", hash: String(opts.algorithm) },
-        false,
-        ["sign"],
-      );
-
-      const signature = await crypto.subtle.sign("HMAC", key, messageData);
-      const array = new Uint8Array(signature);
-
-      if (opts.output === "base64") {
-        return btoa(String.fromCharCode(...array));
-      }
-      return Array.from(array)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    },
-  },
-  {
-    slug: "pbkdf2",
-    name: "PBKDF2 Derivation",
-    description: "Derive keys using PBKDF2",
-    section: "crypto",
-    aliases: ["key-derivation", "password-hash"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "Enter password...",
-    options: [
-      { id: "salt", label: "Salt", type: "text", default: "" },
       {
-        id: "iterations",
+        id: "secret",
+        label: "Secret key",
+        type: "text",
+        default: "",
+        visibleWhen: { optionId: "mode", equals: ["hmac", "jwt-verify"] },
+      },
+      {
+        id: "inputEncoding",
+        label: "Input encoding",
+        type: "select",
+        default: "utf8",
+        options: [
+          { value: "utf8", label: "UTF-8" },
+          { value: "hex", label: "Hex" },
+          { value: "base64", label: "Base64" },
+        ],
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["base58check-encode", "base58check-decode", "bech32-encode"],
+        },
+      },
+      {
+        id: "bech32Prefix",
+        label: "Bech32 prefix (hrp)",
+        type: "text",
+        default: "bc",
+        visibleWhen: { optionId: "mode", equals: "bech32-encode" },
+      },
+      {
+        id: "bech32Variant",
+        label: "Bech32 variant",
+        type: "select",
+        default: "bech32",
+        options: [
+          { value: "bech32", label: "bech32" },
+          { value: "bech32m", label: "bech32m" },
+        ],
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["bech32-encode", "bech32-decode"],
+        },
+      },
+      {
+        id: "pbkdf2Salt",
+        label: "Salt",
+        type: "text",
+        default: "",
+        visibleWhen: { optionId: "mode", equals: "pbkdf2" },
+      },
+      {
+        id: "pbkdf2Iterations",
         label: "Iterations",
         type: "number",
         default: 100000,
         min: 1000,
         max: 1000000,
+        visibleWhen: { optionId: "mode", equals: "pbkdf2" },
       },
       {
-        id: "keyLength",
+        id: "pbkdf2Length",
         label: "Key length (bytes)",
         type: "number",
         default: 32,
         min: 16,
         max: 64,
+        visibleWhen: { optionId: "mode", equals: "pbkdf2" },
       },
       {
-        id: "algorithm",
-        label: "Algorithm",
+        id: "aesKey",
+        label: "AES key",
+        type: "text",
+        default: "",
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["aes-encrypt", "aes-decrypt"],
+        },
+      },
+      {
+        id: "aesKeyEncoding",
+        label: "Key encoding",
         type: "select",
-        default: "SHA-256",
+        default: "utf8",
         options: [
-          { value: "SHA-1", label: "SHA-1" },
-          { value: "SHA-256", label: "SHA-256" },
-          { value: "SHA-512", label: "SHA-512" },
+          { value: "utf8", label: "UTF-8" },
+          { value: "base64", label: "Base64" },
+          { value: "hex", label: "Hex" },
         ],
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["aes-encrypt", "aes-decrypt"],
+        },
+      },
+      {
+        id: "aesIv",
+        label: "IV (base64/hex)",
+        type: "text",
+        default: "",
+        visibleWhen: {
+          optionId: "mode",
+          equals: ["aes-encrypt", "aes-decrypt"],
+        },
       },
     ],
     transform: async (input, opts) => {
-      const password = String(input);
-      const salt = String(opts.salt) || "default-salt";
-      if (!password) return "";
+      const mode = String(opts.mode);
+      const output = String(opts.output || "hex");
 
-      const encoder = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveBits"],
-      );
+      if (mode === "hash-file") {
+        if (!(input instanceof File)) {
+          return { type: "error", message: "Please drop a file" };
+        }
+        const buffer = await input.arrayBuffer();
+        return formatDigest(
+          await digestBytes(new Uint8Array(buffer), opts),
+          output,
+          input,
+        );
+      }
 
-      const derivedBits = await crypto.subtle.deriveBits(
-        {
-          name: "PBKDF2",
-          salt: encoder.encode(salt),
-          iterations: Number(opts.iterations),
-          hash: String(opts.algorithm),
-        },
-        keyMaterial,
-        Number(opts.keyLength) * 8,
-      );
-
-      const hex = Array.from(new Uint8Array(derivedBits))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      return [
-        `Salt: ${salt}`,
-        `Iterations: ${opts.iterations}`,
-        `Key length: ${opts.keyLength} bytes`,
-        `Algorithm: ${opts.algorithm}`,
-        "",
-        `Derived key (hex): ${hex}`,
-        `Derived key (base64): ${btoa(String.fromCharCode(...new Uint8Array(derivedBits)))}`,
-      ].join("\n");
-    },
-  },
-  {
-    slug: "jwt-decode",
-    name: "JWT Decoder",
-    description: "Decode JWT tokens and show header, payload, and expiration",
-    section: "crypto",
-    aliases: ["jwt", "json-web-token"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "Paste JWT token here...",
-    transform: (input) => {
-      const token = String(input).trim();
-      if (!token) return "";
-
-      const parts = token.split(".");
-      if (parts.length !== 3) {
+      if (input instanceof File) {
         return {
           type: "error",
-          message: "Invalid JWT format (expected 3 parts)",
+          message: "Clear the file input to use text modes",
         };
       }
 
-      try {
-        const decodeBase64Url = (str: string) => {
-          let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-          while (base64.length % 4) base64 += "=";
-          return JSON.parse(atob(base64));
-        };
+      const text = String(input ?? "");
+      if (!text && !["hash-text", "jwt-decode"].includes(mode)) return "";
 
-        const header = decodeBase64Url(parts[0]);
-        const payload = decodeBase64Url(parts[1]);
-
-        const lines = [
-          "=== HEADER ===",
-          JSON.stringify(header, null, 2),
-          "",
-          "=== PAYLOAD ===",
-          JSON.stringify(payload, null, 2),
-          "",
-          "=== SIGNATURE ===",
-          parts[2],
-        ];
-
-        if (payload.exp) {
-          const expDate = new Date(payload.exp * 1000);
-          const now = new Date();
-          const isExpired = expDate < now;
-          lines.push("", "=== EXPIRATION ===");
-          lines.push(`Expires: ${expDate.toISOString()}`);
-          lines.push(`Status: ${isExpired ? "✗ EXPIRED" : "✓ VALID"}`);
-          if (!isExpired) {
-            const diff = expDate.getTime() - now.getTime();
-            lines.push(`Expires in: ${formatDuration(diff)}`);
+      switch (mode) {
+        case "hash-text": {
+          const bytes = utf8ToBytes(text);
+          return formatDigest(await digestBytes(bytes, opts), output);
+        }
+        case "hmac": {
+          if (!opts.secret)
+            return { type: "error", message: "Secret key is required" };
+          if (String(opts.algorithm || "SHA-256") === "MD5") {
+            return { type: "error", message: "MD5 is not supported for HMAC" };
+          }
+          const secretBytes = utf8ToBytes(String(opts.secret));
+          const key = await crypto.subtle.importKey(
+            "raw",
+            toArrayBuffer(secretBytes),
+            { name: "HMAC", hash: String(opts.algorithm || "SHA-256") },
+            false,
+            ["sign"],
+          );
+          const signature = await crypto.subtle.sign(
+            "HMAC",
+            key,
+            toArrayBuffer(utf8ToBytes(text)),
+          );
+          return output === "base64"
+            ? bytesToBase64(new Uint8Array(signature))
+            : bytesToHex(new Uint8Array(signature));
+        }
+        case "pbkdf2": {
+          if (String(opts.algorithm || "SHA-256") === "MD5") {
+            return {
+              type: "error",
+              message: "MD5 is not supported for PBKDF2",
+            };
+          }
+          const salt = utf8ToBytes(String(opts.pbkdf2Salt || ""));
+          const keyMaterial = await crypto.subtle.importKey(
+            "raw",
+            toArrayBuffer(utf8ToBytes(text)),
+            "PBKDF2",
+            false,
+            ["deriveBits"],
+          );
+          const bits = await crypto.subtle.deriveBits(
+            {
+              name: "PBKDF2",
+              salt: toArrayBuffer(salt),
+              iterations: Number(opts.pbkdf2Iterations) || 100000,
+              hash: String(opts.algorithm || "SHA-256"),
+            },
+            keyMaterial,
+            (Number(opts.pbkdf2Length) || 32) * 8,
+          );
+          const bytes = new Uint8Array(bits);
+          return output === "base64" ? bytesToBase64(bytes) : bytesToHex(bytes);
+        }
+        case "aes-encrypt": {
+          const keyBytesResult = safeDecodeByEncoding(
+            String(opts.aesKey || ""),
+            String(opts.aesKeyEncoding),
+          );
+          if (!keyBytesResult.bytes.length) {
+            return { type: "error", message: "AES key is required" };
+          }
+          if (keyBytesResult.error) {
+            return { type: "error", message: keyBytesResult.error };
+          }
+          const ivBytesResult = opts.aesIv
+            ? safeDecodeByEncoding(
+                String(opts.aesIv),
+                inferEncoding(String(opts.aesIv)),
+              )
+            : { bytes: crypto.getRandomValues(new Uint8Array(12)) };
+          if (ivBytesResult.error) {
+            return { type: "error", message: ivBytesResult.error };
+          }
+          const key = await crypto.subtle.importKey(
+            "raw",
+            toArrayBuffer(keyBytesResult.bytes),
+            { name: "AES-GCM" },
+            false,
+            ["encrypt"],
+          );
+          const ciphertext = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: toArrayBuffer(ivBytesResult.bytes) },
+            key,
+            toArrayBuffer(utf8ToBytes(text)),
+          );
+          return JSON.stringify(
+            {
+              iv: bytesToBase64(new Uint8Array(ivBytesResult.bytes)),
+              ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+            },
+            null,
+            2,
+          );
+        }
+        case "aes-decrypt": {
+          const keyBytesResult = safeDecodeByEncoding(
+            String(opts.aesKey || ""),
+            String(opts.aesKeyEncoding),
+          );
+          if (!keyBytesResult.bytes.length) {
+            return { type: "error", message: "AES key is required" };
+          }
+          if (keyBytesResult.error) {
+            return { type: "error", message: keyBytesResult.error };
+          }
+          let payload: { iv: string; ciphertext: string };
+          try {
+            payload = JSON.parse(text);
+          } catch {
+            return {
+              type: "error",
+              message: "Provide JSON with iv + ciphertext",
+            };
+          }
+          const ivBytesResult = safeDecodeByEncoding(
+            payload.iv,
+            inferEncoding(payload.iv),
+          );
+          if (ivBytesResult.error) {
+            return { type: "error", message: ivBytesResult.error };
+          }
+          const cipherBytes = base64ToBytes(
+            normalizeBase64(payload.ciphertext, true),
+          );
+          const key = await crypto.subtle.importKey(
+            "raw",
+            toArrayBuffer(keyBytesResult.bytes),
+            { name: "AES-GCM" },
+            false,
+            ["decrypt"],
+          );
+          const plaintext = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: toArrayBuffer(ivBytesResult.bytes) },
+            key,
+            toArrayBuffer(cipherBytes),
+          );
+          return bytesToUtf8(new Uint8Array(plaintext));
+        }
+        case "jwt-decode": {
+          return decodeJwt(text);
+        }
+        case "jwt-verify": {
+          if (!opts.secret)
+            return { type: "error", message: "Secret key is required" };
+          return verifyJwt(text, String(opts.secret));
+        }
+        case "base58check-encode": {
+          const decoded = safeDecodeByEncoding(
+            text,
+            String(opts.inputEncoding || "utf8"),
+          );
+          if (decoded.error) return { type: "error", message: decoded.error };
+          const checksum = await doubleSha256(decoded.bytes);
+          const payload = concatBytes(decoded.bytes, checksum.slice(0, 4));
+          return base58.encode(payload);
+        }
+        case "base58check-decode": {
+          try {
+            const decoded = base58.decode(text.trim());
+            if (decoded.length < 5) {
+              return { type: "error", message: "Invalid Base58Check payload" };
+            }
+            const payload = decoded.slice(0, -4);
+            const checksum = decoded.slice(-4);
+            const expected = (await doubleSha256(payload)).slice(0, 4);
+            const valid = bytesToHex(checksum) === bytesToHex(expected);
+            const utf8 = safeBytesToUtf8(payload);
+            return JSON.stringify(
+              {
+                valid,
+                hex: bytesToHex(payload),
+                text: utf8 ?? null,
+              },
+              null,
+              2,
+            );
+          } catch {
+            return { type: "error", message: "Invalid Base58Check string" };
           }
         }
-
-        if (payload.iat) {
-          lines.push(`Issued: ${new Date(payload.iat * 1000).toISOString()}`);
+        case "bech32-encode": {
+          const decoded = safeDecodeByEncoding(
+            text,
+            String(opts.inputEncoding || "utf8"),
+          );
+          if (decoded.error) return { type: "error", message: decoded.error };
+          const hrp = String(opts.bech32Prefix || "bc");
+          const variant = String(opts.bech32Variant || "bech32");
+          const words = (variant === "bech32m" ? bech32m : bech32).toWords(
+            decoded.bytes,
+          );
+          return (variant === "bech32m" ? bech32m : bech32).encode(hrp, words);
         }
-
-        return lines.join("\n");
-      } catch {
-        return { type: "error", message: "Failed to decode JWT" };
-      }
-    },
-  },
-  {
-    slug: "jwt-expired",
-    name: "JWT Expiration Checker",
-    description: "Check if a JWT is expired and show remaining time",
-    section: "crypto",
-    aliases: ["jwt-check", "token-expiry"],
-    inputType: "text",
-    outputType: "text",
-    transform: (input) => {
-      const token = String(input).trim();
-      if (!token) return "";
-
-      const parts = token.split(".");
-      if (parts.length !== 3) {
-        return { type: "error", message: "Invalid JWT format" };
-      }
-
-      try {
-        let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-        while (base64.length % 4) base64 += "=";
-        const payload = JSON.parse(atob(base64));
-
-        if (!payload.exp) {
-          return "This JWT has no expiration (exp) claim";
+        case "bech32-decode": {
+          try {
+            const variant = String(opts.bech32Variant || "bech32");
+            const decoded =
+              variant === "bech32m"
+                ? bech32m.decode(text.trim())
+                : bech32.decode(text.trim());
+            const bytes = (variant === "bech32m" ? bech32m : bech32).fromWords(
+              decoded.words,
+            );
+            const utf8 = safeBytesToUtf8(new Uint8Array(bytes));
+            return JSON.stringify(
+              {
+                hrp: decoded.prefix,
+                hex: bytesToHex(new Uint8Array(bytes)),
+                text: utf8 ?? null,
+              },
+              null,
+              2,
+            );
+          } catch {
+            return { type: "error", message: "Invalid bech32 string" };
+          }
         }
-
-        const expDate = new Date(payload.exp * 1000);
-        const now = new Date();
-        const isExpired = expDate < now;
-
-        if (isExpired) {
-          const diff = now.getTime() - expDate.getTime();
-          return `✗ EXPIRED\n\nExpired: ${expDate.toISOString()}\nExpired ${formatDuration(diff)} ago`;
-        }
-
-        const diff = expDate.getTime() - now.getTime();
-        return `✓ VALID\n\nExpires: ${expDate.toISOString()}\nExpires in: ${formatDuration(diff)}`;
-      } catch {
-        return { type: "error", message: "Failed to decode JWT" };
-      }
-    },
-  },
-  {
-    slug: "random-bytes",
-    name: "Random Bytes Generator",
-    description: "Generate cryptographically secure random bytes",
-    section: "crypto",
-    aliases: ["random", "secure-random"],
-    inputType: "none",
-    outputType: "text",
-    options: [
-      {
-        id: "length",
-        label: "Length (bytes)",
-        type: "number",
-        default: 32,
-        min: 1,
-        max: 1024,
-      },
-      {
-        id: "format",
-        label: "Format",
-        type: "select",
-        default: "hex",
-        options: [
-          { value: "hex", label: "Hex" },
-          { value: "base64", label: "Base64" },
-          { value: "base64url", label: "Base64URL" },
-        ],
-      },
-    ],
-    transform: (_, opts) => {
-      const length = Number(opts.length) || 32;
-      const bytes = new Uint8Array(length);
-      crypto.getRandomValues(bytes);
-
-      switch (opts.format) {
-        case "base64":
-          return btoa(String.fromCharCode(...bytes));
-        case "base64url":
-          return btoa(String.fromCharCode(...bytes))
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=+$/, "");
         default:
-          return Array.from(bytes)
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("");
+          return "";
       }
-    },
-  },
-  {
-    slug: "password-generator",
-    name: "Password Generator",
-    description: "Generate secure random passwords",
-    section: "crypto",
-    aliases: ["passgen", "secure-password"],
-    inputType: "none",
-    outputType: "text",
-    options: [
-      {
-        id: "length",
-        label: "Length",
-        type: "number",
-        default: 16,
-        min: 4,
-        max: 128,
-      },
-      {
-        id: "uppercase",
-        label: "Uppercase (A-Z)",
-        type: "toggle",
-        default: true,
-      },
-      {
-        id: "lowercase",
-        label: "Lowercase (a-z)",
-        type: "toggle",
-        default: true,
-      },
-      { id: "numbers", label: "Numbers (0-9)", type: "toggle", default: true },
-      {
-        id: "symbols",
-        label: "Symbols (!@#$...)",
-        type: "toggle",
-        default: true,
-      },
-      {
-        id: "avoidAmbiguous",
-        label: "Avoid ambiguous (0O1lI)",
-        type: "toggle",
-        default: false,
-      },
-      {
-        id: "count",
-        label: "Generate count",
-        type: "number",
-        default: 1,
-        min: 1,
-        max: 10,
-      },
-    ],
-    transform: (_, opts) => {
-      let chars = "";
-      const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const lower = "abcdefghijklmnopqrstuvwxyz";
-      const nums = "0123456789";
-      const syms = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-      const ambiguous = "0O1lI";
-
-      if (opts.uppercase) chars += upper;
-      if (opts.lowercase) chars += lower;
-      if (opts.numbers) chars += nums;
-      if (opts.symbols) chars += syms;
-
-      if (!chars) chars = lower + nums;
-
-      if (opts.avoidAmbiguous) {
-        chars = chars
-          .split("")
-          .filter((c) => !ambiguous.includes(c))
-          .join("");
-      }
-
-      const length = Number(opts.length) || 16;
-      const count = Number(opts.count) || 1;
-      const passwords: string[] = [];
-
-      for (let i = 0; i < count; i++) {
-        const bytes = new Uint8Array(length);
-        crypto.getRandomValues(bytes);
-        const password = Array.from(bytes)
-          .map((b) => chars[b % chars.length])
-          .join("");
-        passwords.push(password);
-      }
-
-      return passwords.join("\n");
-    },
-  },
-  {
-    slug: "aes-encrypt",
-    name: "AES-GCM Encrypt / Decrypt",
-    description: "Encrypt or decrypt text using AES-GCM",
-    section: "crypto",
-    aliases: ["aes", "encrypt", "decrypt"],
-    inputType: "text",
-    outputType: "text",
-    options: [
-      {
-        id: "mode",
-        label: "Mode",
-        type: "select",
-        default: "encrypt",
-        options: [
-          { value: "encrypt", label: "Encrypt" },
-          { value: "decrypt", label: "Decrypt" },
-        ],
-      },
-      { id: "password", label: "Password", type: "text", default: "" },
-    ],
-    transform: async (input, opts) => {
-      const text = String(input);
-      const password = String(opts.password);
-      if (!text) return "";
-      if (!password) return { type: "error", message: "Password is required" };
-
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
-
-      // Derive key from password
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveBits", "deriveKey"],
-      );
-
-      const salt = encoder.encode("orle-aes-salt");
-      const key = await crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt", "decrypt"],
-      );
-
-      if (opts.mode === "encrypt") {
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const encrypted = await crypto.subtle.encrypt(
-          { name: "AES-GCM", iv },
-          key,
-          encoder.encode(text),
-        );
-
-        // Combine IV + ciphertext and encode as base64
-        const combined = new Uint8Array(iv.length + encrypted.byteLength);
-        combined.set(iv, 0);
-        combined.set(new Uint8Array(encrypted), iv.length);
-
-        return btoa(String.fromCharCode(...combined));
-      }
-
-      try {
-        const combined = new Uint8Array(
-          atob(text)
-            .split("")
-            .map((c) => c.charCodeAt(0)),
-        );
-        const iv = combined.slice(0, 12);
-        const ciphertext = combined.slice(12);
-
-        const decrypted = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv },
-          key,
-          ciphertext,
-        );
-
-        return decoder.decode(decrypted);
-      } catch {
-        return {
-          type: "error",
-          message: "Decryption failed (wrong password or corrupted data)",
-        };
-      }
-    },
-  },
-  {
-    slug: "bcrypt-verify",
-    name: "Bcrypt Info",
-    description:
-      "Analyze bcrypt hash structure (cannot generate without backend)",
-    section: "crypto",
-    aliases: ["bcrypt"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "Paste bcrypt hash (e.g., $2b$10$...)",
-    transform: (input) => {
-      const hash = String(input).trim();
-      if (!hash) return "";
-
-      const match = hash.match(/^\$(\d[a-z]?)\$(\d{2})\$(.{22})(.{31})$/);
-      if (!match) {
-        return { type: "error", message: "Invalid bcrypt hash format" };
-      }
-
-      const [, version, costStr, salt, digest] = match;
-      const cost = Number.parseInt(costStr, 10);
-      const iterations = 2 ** cost;
-
-      return [
-        `Version: ${version}`,
-        `Cost factor: ${cost}`,
-        `Iterations: ${iterations.toLocaleString()}`,
-        `Salt (base64): ${salt}`,
-        `Digest (base64): ${digest}`,
-        "",
-        "Note: Bcrypt verification requires a backend due to its computational cost.",
-      ].join("\n");
-    },
-  },
-  {
-    slug: "crc32",
-    name: "CRC32 Checksum",
-    description: "Calculate CRC32 checksum",
-    section: "crypto",
-    aliases: ["crc", "checksum"],
-    inputType: "text",
-    outputType: "text",
-    transform: (input) => {
-      const str = String(input);
-      if (!str) return "";
-
-      const crc = crc32(str);
-      return [
-        `CRC32: ${crc.toString(16).toUpperCase().padStart(8, "0")}`,
-        `Decimal: ${crc}`,
-      ].join("\n");
     },
   },
 ];
 
-// Helper functions
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
+async function digestBytes(
+  bytes: Uint8Array,
+  opts: Record<string, unknown>,
+): Promise<Uint8Array> {
+  const algorithm = String(opts.algorithm || "SHA-256");
+  if (algorithm === "MD5") {
+    return md5(bytes);
+  }
+  const digest = await crypto.subtle.digest(algorithm, toArrayBuffer(bytes));
+  return new Uint8Array(digest);
 }
 
-function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ${hours % 24}h`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-  return `${seconds}s`;
+function formatDigest(bytes: Uint8Array, output: string, file?: File): string {
+  const hash = output === "base64" ? bytesToBase64(bytes) : bytesToHex(bytes);
+  if (!file) return hash;
+  return [
+    `File: ${file.name}`,
+    `Size: ${file.size} bytes`,
+    `Hash: ${hash}`,
+  ].join("\n");
 }
 
-// Simple MD5 implementation (for browser use only)
-async function md5(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
+function decodeByEncoding(value: string, encoding: string): Uint8Array {
+  if (!value) return new Uint8Array();
+  switch (encoding) {
+    case "hex":
+      return hexToBytes(value);
+    case "base64":
+      return base64ToBytes(normalizeBase64(value, true));
+    default:
+      return utf8ToBytes(value);
+  }
+}
 
-  // Use a simple implementation since Web Crypto doesn't support MD5
-  let h0 = 0x67452301;
-  let h1 = 0xefcdab89;
-  let h2 = 0x98badcfe;
-  let h3 = 0x10325476;
+function inferEncoding(value: string): string {
+  if (/^[0-9a-fA-F]+$/.test(value)) return "hex";
+  if (/^[A-Za-z0-9+/=\-_]+$/.test(value)) return "base64";
+  return "utf8";
+}
 
-  const K = Array.from({ length: 64 }, (_, i) =>
-    Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000),
+function decodeJwt(token: string): string {
+  const parts = token.split(".");
+  if (parts.length < 2) return "Invalid JWT";
+  try {
+    const header = JSON.parse(atob(base64UrlToBase64(parts[0])));
+    const payload = JSON.parse(atob(base64UrlToBase64(parts[1])));
+    return JSON.stringify({ header, payload }, null, 2);
+  } catch {
+    return "Invalid JWT";
+  }
+}
+
+async function verifyJwt(token: string, secret: string): Promise<string> {
+  const parts = token.split(".");
+  if (parts.length !== 3) return "Invalid JWT";
+  const [headerB64, payloadB64, signatureB64] = parts;
+  const header = JSON.parse(atob(base64UrlToBase64(headerB64)));
+  const alg = String(header.alg || "");
+  if (!alg.startsWith("HS")) {
+    return "Unsupported alg (only HS256/HS384/HS512)";
+  }
+  const hash =
+    alg === "HS512" ? "SHA-512" : alg === "HS384" ? "SHA-384" : "SHA-256";
+  const secretBytes = utf8ToBytes(secret);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    toArrayBuffer(secretBytes),
+    { name: "HMAC", hash },
+    false,
+    ["sign"],
   );
-  const S = [
-    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5,
-    9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11,
-    16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10,
-    15, 21,
-  ];
-
-  const padded = new Uint8Array((((data.length + 8) >> 6) << 6) + 64);
-  padded.set(data);
-  padded[data.length] = 0x80;
-  const bits = data.length * 8;
-  const view = new DataView(padded.buffer);
-  view.setUint32(padded.length - 8, bits, true);
-
-  for (let i = 0; i < padded.length; i += 64) {
-    const M = Array.from({ length: 16 }, (_, j) =>
-      view.getUint32(i + j * 4, true),
-    );
-    let [a, b, c, d] = [h0, h1, h2, h3];
-
-    for (let j = 0; j < 64; j++) {
-      let f: number, g: number;
-      if (j < 16) {
-        f = (b & c) | (~b & d);
-        g = j;
-      } else if (j < 32) {
-        f = (d & b) | (~d & c);
-        g = (5 * j + 1) % 16;
-      } else if (j < 48) {
-        f = b ^ c ^ d;
-        g = (3 * j + 5) % 16;
-      } else {
-        f = c ^ (b | ~d);
-        g = (7 * j) % 16;
-      }
-
-      const temp = d;
-      d = c;
-      c = b;
-      const sum = (a + f + K[j] + M[g]) >>> 0;
-      b = (b + ((sum << S[j]) | (sum >>> (32 - S[j])))) >>> 0;
-      a = temp;
-    }
-
-    h0 = (h0 + a) >>> 0;
-    h1 = (h1 + b) >>> 0;
-    h2 = (h2 + c) >>> 0;
-    h3 = (h3 + d) >>> 0;
-  }
-
-  const toHex = (n: number) => {
-    const hex = n.toString(16).padStart(8, "0");
-    const pairs = hex.match(/../g) ?? [];
-    return pairs.reverse().join("");
-  };
-  return toHex(h0) + toHex(h1) + toHex(h2) + toHex(h3);
+  const data = utf8ToBytes(`${headerB64}.${payloadB64}`);
+  const signature = await crypto.subtle.sign("HMAC", key, toArrayBuffer(data));
+  const expected = base64UrlEncode(new Uint8Array(signature));
+  return expected === signatureB64
+    ? "✓ Signature valid"
+    : "✗ Signature invalid";
 }
 
-function crc32(str: string): number {
-  const table = Array.from({ length: 256 }, (_, i) => {
-    let c = i;
-    for (let j = 0; j < 8; j++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    return c;
-  });
+function base64UrlToBase64(value: string): string {
+  let base = value.replace(/-/g, "+").replace(/_/g, "/");
+  while (base.length % 4) base += "=";
+  return base;
+}
 
-  let crc = 0xffffffff;
-  for (let i = 0; i < str.length; i++) {
-    crc = table[(crc ^ str.charCodeAt(i)) & 0xff] ^ (crc >>> 8);
+function base64UrlEncode(bytes: Uint8Array): string {
+  return bytesToBase64(bytes)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function safeDecodeByEncoding(
+  value: string,
+  encoding: string,
+): { bytes: Uint8Array; error?: string } {
+  try {
+    return { bytes: decodeByEncoding(value, encoding) };
+  } catch (error) {
+    return { bytes: new Uint8Array(), error: (error as Error).message };
   }
-  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function safeBytesToUtf8(bytes: Uint8Array): string | null {
+  try {
+    return bytesToUtf8(bytes);
+  } catch {
+    return null;
+  }
+}
+
+function concatBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
+  const output = new Uint8Array(a.length + b.length);
+  output.set(a, 0);
+  output.set(b, a.length);
+  return output;
+}
+
+async function doubleSha256(bytes: Uint8Array): Promise<Uint8Array> {
+  const first = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", toArrayBuffer(bytes)),
+  );
+  const second = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", toArrayBuffer(first)),
+  );
+  return second;
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  if (bytes.buffer instanceof ArrayBuffer) {
+    const { byteOffset, byteLength } = bytes;
+    return bytes.buffer.slice(byteOffset, byteOffset + byteLength);
+  }
+  return new Uint8Array(bytes).buffer;
 }

@@ -7,18 +7,32 @@ import type {
 
 export const diffTools: ToolDefinition[] = [
   {
-    slug: "text-diff",
-    name: "Text Diff",
-    description: "Compare two texts and show differences",
+    slug: "diff-suite",
+    name: "Diff & Compare Suite",
+    description: "Text, JSON, and structural diffs",
     section: "diff",
-    aliases: ["compare", "diff", "changes"],
+    aliases: ["diff", "compare", "patch"],
     inputType: "dual",
     outputType: "diff",
     useWorker: "diff",
+    runPolicy: "manual",
     options: [
       {
         id: "mode",
-        label: "Diff mode",
+        label: "Mode",
+        type: "select",
+        default: "text-diff",
+        options: [
+          { value: "text-diff", label: "Text diff" },
+          { value: "unified-diff", label: "Unified diff" },
+          { value: "apply-patch", label: "Apply unified patch" },
+          { value: "json-diff", label: "JSON diff" },
+          { value: "string-similarity", label: "String similarity" },
+        ],
+      },
+      {
+        id: "diffMode",
+        label: "Text diff mode",
         type: "select",
         default: "lines",
         options: [
@@ -26,57 +40,132 @@ export const diffTools: ToolDefinition[] = [
           { value: "words", label: "Word by word" },
           { value: "chars", label: "Character by character" },
         ],
+        visibleWhen: { optionId: "mode", equals: "text-diff" },
       },
       {
         id: "ignoreWhitespace",
         label: "Ignore whitespace",
         type: "toggle",
         default: false,
+        visibleWhen: { optionId: "mode", equals: "text-diff" },
       },
       {
         id: "ignoreCase",
         label: "Ignore case",
         type: "toggle",
         default: false,
+        visibleWhen: { optionId: "mode", equals: "text-diff" },
+      },
+      {
+        id: "filename1",
+        label: "File 1 name",
+        type: "text",
+        default: "original.txt",
+        visibleWhen: { optionId: "mode", equals: "unified-diff" },
+      },
+      {
+        id: "filename2",
+        label: "File 2 name",
+        type: "text",
+        default: "modified.txt",
+        visibleWhen: { optionId: "mode", equals: "unified-diff" },
+      },
+      {
+        id: "context",
+        label: "Context lines",
+        type: "number",
+        default: 3,
+        min: 0,
+        max: 10,
+        visibleWhen: { optionId: "mode", equals: "unified-diff" },
       },
     ],
     transform: (input, opts) => {
       const parts = getDualInput(input);
       if (!parts) {
-        return {
-          type: "error",
-          message: "Enter text in both panels to compare",
-        };
+        return { type: "error", message: "Enter text in both panels" };
+      }
+      const mode = String(opts.mode);
+
+      if (mode === "unified-diff") {
+        return Diff.createPatch(
+          String(opts.filename1 || "original"),
+          parts.a,
+          parts.b,
+          String(opts.filename1 || "original"),
+          String(opts.filename2 || "modified"),
+          { context: Number(opts.context) || 3 },
+        );
       }
 
-      let text1 = parts.a.trim();
-      let text2 = parts.b.trim();
+      if (mode === "apply-patch") {
+        try {
+          const patched = Diff.applyPatch(parts.a, parts.b);
+          if (patched === false) {
+            return { type: "error", message: "Patch could not be applied" };
+          }
+          return patched;
+        } catch (error) {
+          return { type: "error", message: (error as Error).message };
+        }
+      }
 
+      if (mode === "json-diff") {
+        try {
+          const obj1 = JSON.parse(parts.a);
+          const obj2 = JSON.parse(parts.b);
+          const changes = compareJson(obj1, obj2, "");
+          if (changes.length === 0) return "✓ No differences found";
+          return changes
+            .map((c) => {
+              switch (c.type) {
+                case "added":
+                  return `+ ${c.path}: ${JSON.stringify(c.value)}`;
+                case "removed":
+                  return `- ${c.path}: ${JSON.stringify(c.value)}`;
+                case "changed":
+                  return `~ ${c.path}:\n    - ${JSON.stringify(c.oldValue)}\n    + ${JSON.stringify(c.value)}`;
+                default:
+                  return "";
+              }
+            })
+            .join("\n");
+        } catch (error) {
+          return { type: "error", message: (error as Error).message };
+        }
+      }
+
+      if (mode === "string-similarity") {
+        const distance = levenshtein(parts.a, parts.b);
+        const maxLen = Math.max(parts.a.length, parts.b.length);
+        const similarity =
+          maxLen > 0 ? ((1 - distance / maxLen) * 100).toFixed(2) : "100";
+        return [
+          `String 1 length: ${parts.a.length}`,
+          `String 2 length: ${parts.b.length}`,
+          `Levenshtein distance: ${distance}`,
+          `Similarity: ${similarity}%`,
+        ].join("\n");
+      }
+
+      let text1 = parts.a;
+      let text2 = parts.b;
       if (opts.ignoreCase) {
         text1 = text1.toLowerCase();
         text2 = text2.toLowerCase();
       }
-
-      // Apply whitespace normalization if needed
       if (opts.ignoreWhitespace) {
         text1 = text1.replace(/\s+/g, " ").trim();
         text2 = text2.replace(/\s+/g, " ").trim();
       }
+      const diffMode = String(opts.diffMode || "lines");
+      const diff =
+        diffMode === "words"
+          ? Diff.diffWords(text1, text2)
+          : diffMode === "chars"
+            ? Diff.diffChars(text1, text2)
+            : Diff.diffLines(text1, text2);
 
-      let diff: Diff.Change[];
-
-      switch (opts.mode) {
-        case "words":
-          diff = Diff.diffWords(text1, text2);
-          break;
-        case "chars":
-          diff = Diff.diffChars(text1, text2);
-          break;
-        default:
-          diff = Diff.diffLines(text1, text2);
-      }
-
-      // Convert to structured format
       const changes = diff.map((part) => ({
         type: (part.added ? "added" : part.removed ? "removed" : "unchanged") as
           | "added"
@@ -85,7 +174,6 @@ export const diffTools: ToolDefinition[] = [
         value: part.value.replace(/\n$/, ""),
       }));
 
-      // Calculate stats
       let additions = 0;
       let deletions = 0;
       for (const part of diff) {
@@ -93,14 +181,13 @@ export const diffTools: ToolDefinition[] = [
         if (part.removed) deletions += part.value.length;
       }
 
-      // Generate text output for copy
       const textOutput = diff
         .map((part) => {
           const prefix = part.added ? "+" : part.removed ? "-" : " ";
           const lines = part.value
             .split("\n")
-            .filter((l, i, arr) => i < arr.length - 1 || l);
-          return lines.map((l) => `${prefix} ${l}`).join("\n");
+            .filter((line, i, arr) => i < arr.length - 1 || line);
+          return lines.map((line) => `${prefix} ${line}`).join("\n");
         })
         .join("\n");
 
@@ -114,415 +201,7 @@ export const diffTools: ToolDefinition[] = [
       return result;
     },
   },
-  {
-    slug: "unified-diff",
-    name: "Unified Diff Generator",
-    description: "Generate unified diff (patch format)",
-    section: "diff",
-    aliases: ["patch", "git-diff"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder:
-      "Enter text 1 here...\n---SEPARATOR---\nEnter text 2 here...",
-    options: [
-      {
-        id: "filename1",
-        label: "File 1 name",
-        type: "text",
-        default: "original.txt",
-      },
-      {
-        id: "filename2",
-        label: "File 2 name",
-        type: "text",
-        default: "modified.txt",
-      },
-      {
-        id: "context",
-        label: "Context lines",
-        type: "number",
-        default: 3,
-        min: 0,
-        max: 10,
-      },
-    ],
-    transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two texts",
-        };
-      }
-
-      const text1 = parts[0].trim();
-      const text2 = parts[1].trim();
-
-      return Diff.createPatch(
-        String(opts.filename1),
-        text1,
-        text2,
-        String(opts.filename1),
-        String(opts.filename2),
-        { context: Number(opts.context) },
-      );
-    },
-  },
-  {
-    slug: "json-diff",
-    name: "JSON Diff (Structural)",
-    description: "Compare JSON objects structurally with path changes",
-    section: "diff",
-    aliases: ["compare-json", "json-compare"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: '{"key": "value1"}\n---SEPARATOR---\n{"key": "value2"}',
-    options: [
-      {
-        id: "sortKeys",
-        label: "Sort keys first",
-        type: "toggle",
-        default: true,
-      },
-    ],
-    transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two JSON objects",
-        };
-      }
-
-      try {
-        let obj1 = JSON.parse(parts[0].trim());
-        let obj2 = JSON.parse(parts[1].trim());
-
-        if (opts.sortKeys) {
-          obj1 = sortObjectKeys(obj1);
-          obj2 = sortObjectKeys(obj2);
-        }
-
-        const changes = compareJson(obj1, obj2, "");
-        if (changes.length === 0) {
-          return "✓ No differences found";
-        }
-
-        return changes
-          .map((c) => {
-            switch (c.type) {
-              case "added":
-                return `+ ${c.path}: ${JSON.stringify(c.value)}`;
-              case "removed":
-                return `- ${c.path}: ${JSON.stringify(c.value)}`;
-              case "changed":
-                return `~ ${c.path}:\n    - ${JSON.stringify(c.oldValue)}\n    + ${JSON.stringify(c.value)}`;
-              default:
-                return "";
-            }
-          })
-          .join("\n");
-      } catch (e) {
-        return {
-          type: "error",
-          message: `Invalid JSON: ${(e as Error).message}`,
-        };
-      }
-    },
-  },
-  {
-    slug: "yaml-diff",
-    name: "YAML Diff",
-    description: "Compare YAML documents (converted to JSON internally)",
-    section: "diff",
-    aliases: ["compare-yaml"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "key: value1\n---SEPARATOR---\nkey: value2",
-    transform: async (input) => {
-      const yaml = await import("js-yaml");
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two YAML documents",
-        };
-      }
-
-      try {
-        const obj1 = sortObjectKeys(yaml.load(parts[0].trim()));
-        const obj2 = sortObjectKeys(yaml.load(parts[1].trim()));
-
-        const changes = compareJson(obj1, obj2, "");
-        if (changes.length === 0) {
-          return "✓ No differences found";
-        }
-
-        return changes
-          .map((c) => {
-            switch (c.type) {
-              case "added":
-                return `+ ${c.path}: ${JSON.stringify(c.value)}`;
-              case "removed":
-                return `- ${c.path}: ${JSON.stringify(c.value)}`;
-              case "changed":
-                return `~ ${c.path}:\n    - ${JSON.stringify(c.oldValue)}\n    + ${JSON.stringify(c.value)}`;
-              default:
-                return "";
-            }
-          })
-          .join("\n");
-      } catch (e) {
-        return {
-          type: "error",
-          message: `Invalid YAML: ${(e as Error).message}`,
-        };
-      }
-    },
-  },
-  {
-    slug: "csv-diff",
-    name: "CSV Diff",
-    description: "Compare CSV files row by row",
-    section: "diff",
-    aliases: ["compare-csv"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "id,name\n1,Alice\n---SEPARATOR---\nid,name\n1,Bob",
-    options: [
-      {
-        id: "keyColumn",
-        label: "Key column (0-based)",
-        type: "number",
-        default: 0,
-        min: 0,
-      },
-      {
-        id: "delimiter",
-        label: "Delimiter",
-        type: "select",
-        default: ",",
-        options: [
-          { value: ",", label: "Comma" },
-          { value: "\t", label: "Tab" },
-          { value: ";", label: "Semicolon" },
-        ],
-      },
-    ],
-    transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two CSVs",
-        };
-      }
-
-      const delim = String(opts.delimiter);
-      const keyCol = Number(opts.keyColumn);
-
-      const parse = (csv: string) => {
-        const rows: Map<string, string[]> = new Map();
-        for (const line of csv.trim().split("\n")) {
-          const cols = line.split(delim);
-          rows.set(cols[keyCol] || line, cols);
-        }
-        return rows;
-      };
-
-      const rows1 = parse(parts[0]);
-      const rows2 = parse(parts[1]);
-      const results: string[] = [];
-
-      // Find removed and changed
-      for (const [key, cols1] of rows1) {
-        const cols2 = rows2.get(key);
-        if (!cols2) {
-          results.push(`- [${key}] ${cols1.join(delim)}`);
-        } else if (cols1.join(delim) !== cols2.join(delim)) {
-          results.push(`~ [${key}]`);
-          results.push(`  - ${cols1.join(delim)}`);
-          results.push(`  + ${cols2.join(delim)}`);
-        }
-      }
-
-      // Find added
-      for (const [key, cols2] of rows2) {
-        if (!rows1.has(key)) {
-          results.push(`+ [${key}] ${cols2.join(delim)}`);
-        }
-      }
-
-      return results.length > 0 ? results.join("\n") : "✓ No differences found";
-    },
-  },
-  {
-    slug: "string-similarity",
-    name: "String Similarity",
-    description: "Calculate Levenshtein distance and similarity percentage",
-    section: "diff",
-    aliases: ["levenshtein", "edit-distance", "fuzzy-match"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "string1\n---SEPARATOR---\nstring2",
-    transform: (input) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two strings",
-        };
-      }
-
-      const s1 = parts[0].trim();
-      const s2 = parts[1].trim();
-      const distance = levenshtein(s1, s2);
-      const maxLen = Math.max(s1.length, s2.length);
-      const similarity =
-        maxLen > 0 ? ((1 - distance / maxLen) * 100).toFixed(2) : 100;
-
-      return [
-        `String 1 length: ${s1.length}`,
-        `String 2 length: ${s2.length}`,
-        `Levenshtein distance: ${distance}`,
-        `Similarity: ${similarity}%`,
-      ].join("\n");
-    },
-  },
-  {
-    slug: "hash-compare",
-    name: "Hash Compare",
-    description: "Compare two hash values for equality",
-    section: "diff",
-    aliases: ["checksum-compare", "verify-hash"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder: "hash1\n---SEPARATOR---\nhash2",
-    options: [
-      { id: "ignoreCase", label: "Ignore case", type: "toggle", default: true },
-      {
-        id: "ignoreSpaces",
-        label: "Ignore spaces",
-        type: "toggle",
-        default: true,
-      },
-    ],
-    transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two hashes",
-        };
-      }
-
-      let hash1 = parts[0].trim();
-      let hash2 = parts[1].trim();
-
-      if (opts.ignoreSpaces) {
-        hash1 = hash1.replace(/\s/g, "");
-        hash2 = hash2.replace(/\s/g, "");
-      }
-      if (opts.ignoreCase) {
-        hash1 = hash1.toLowerCase();
-        hash2 = hash2.toLowerCase();
-      }
-
-      const match = hash1 === hash2;
-      return [
-        `Hash 1: ${hash1}`,
-        `Hash 2: ${hash2}`,
-        "",
-        match ? "✓ MATCH - Hashes are identical" : "✗ NO MATCH - Hashes differ",
-      ].join("\n");
-    },
-  },
-  {
-    slug: "array-diff",
-    name: "Array / List Diff",
-    description: "Find added, removed, and common items between two lists",
-    section: "diff",
-    aliases: ["list-compare", "set-diff"],
-    inputType: "text",
-    outputType: "text",
-    inputPlaceholder:
-      "item1\nitem2\nitem3\n---SEPARATOR---\nitem2\nitem3\nitem4",
-    options: [
-      {
-        id: "ignoreCase",
-        label: "Ignore case",
-        type: "toggle",
-        default: false,
-      },
-      { id: "trimLines", label: "Trim lines", type: "toggle", default: true },
-    ],
-    transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
-        return {
-          type: "error",
-          message: "Use ---SEPARATOR--- to separate two lists",
-        };
-      }
-
-      const normalize = (s: string) => {
-        let result = s;
-        if (opts.trimLines) result = result.trim();
-        if (opts.ignoreCase) result = result.toLowerCase();
-        return result;
-      };
-
-      const list1 = parts[0].split("\n").map(normalize).filter(Boolean);
-      const list2 = parts[1].split("\n").map(normalize).filter(Boolean);
-
-      const set1 = new Set(list1);
-      const set2 = new Set(list2);
-
-      const added = list2.filter((x) => !set1.has(x));
-      const removed = list1.filter((x) => !set2.has(x));
-      const common = list1.filter((x) => set2.has(x));
-
-      const results: string[] = [];
-      if (removed.length > 0) {
-        results.push("Removed:", ...removed.map((x) => `  - ${x}`), "");
-      }
-      if (added.length > 0) {
-        results.push("Added:", ...added.map((x) => `  + ${x}`), "");
-      }
-      if (common.length > 0) {
-        results.push("Common:", ...common.map((x) => `  = ${x}`));
-      }
-
-      return results.length > 0 ? results.join("\n") : "✓ Lists are identical";
-    },
-  },
 ];
-
-// Helper functions
-function sortObjectKeys(obj: unknown): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys);
-  }
-  if (obj !== null && typeof obj === "object") {
-    return Object.keys(obj as Record<string, unknown>)
-      .sort()
-      .reduce(
-        (result, key) => {
-          result[key] = sortObjectKeys((obj as Record<string, unknown>)[key]);
-          return result;
-        },
-        {} as Record<string, unknown>,
-      );
-  }
-  return obj;
-}
 
 type JsonChange = {
   type: "added" | "removed" | "changed";
@@ -625,18 +304,10 @@ function getDualInput(
   input: ToolTransformInput,
 ): { a: string; b: string } | null {
   if (typeof input === "object" && input && "kind" in input) {
-    if (input.kind === "dual") {
-      return { a: input.a, b: input.b };
-    }
-    if (input.kind === "text") {
-      return splitDualText(input.text);
-    }
+    if (input.kind === "dual") return { a: input.a, b: input.b };
+    if (input.kind === "text") return splitDualText(input.text);
   }
-
-  if (typeof input === "string") {
-    return splitDualText(input);
-  }
-
+  if (typeof input === "string") return splitDualText(input);
   return null;
 }
 

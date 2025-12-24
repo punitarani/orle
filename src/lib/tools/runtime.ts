@@ -60,6 +60,18 @@ export async function loadToolRuntime(
       const mod = await import("./sections/code");
       return mod.codeTools.find((tool) => tool.slug === slug);
     }
+    case "regex": {
+      const mod = await import("./sections/regex");
+      return mod.regexTools.find((tool) => tool.slug === slug);
+    }
+    case "data": {
+      const mod = await import("./sections/data");
+      return mod.dataTools.find((tool) => tool.slug === slug);
+    }
+    case "markdown": {
+      const mod = await import("./sections/markdown");
+      return mod.markdownTools.find((tool) => tool.slug === slug);
+    }
     default:
       return undefined;
   }

@@ -6,6 +6,7 @@ import {
   Calculator,
   ChevronRight,
   Clock,
+  Database,
   FileText,
   Globe,
   Hash,
@@ -14,6 +15,7 @@ import {
   Link as LinkIcon,
   Lock,
   Palette,
+  Search,
   Sparkles,
   Terminal,
   Trash2,
@@ -68,6 +70,8 @@ const SECTION_ICONS = {
   Image: ImageIcon,
   Palette,
   Terminal,
+  Search,
+  Database,
 } as const;
 
 export function AppSidebar() {

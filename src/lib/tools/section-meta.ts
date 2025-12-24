@@ -79,4 +79,22 @@ export const SECTION_META: SectionMeta[] = [
     description: "Beautify, escape, minify",
     icon: "Terminal",
   },
+  {
+    id: "regex",
+    name: "Regex Tools",
+    description: "Test, extract, replace, explain",
+    icon: "Search",
+  },
+  {
+    id: "data",
+    name: "Data Extraction",
+    description: "Extract emails, URLs, IPs, key/value",
+    icon: "Database",
+  },
+  {
+    id: "markdown",
+    name: "Markdown & Docs",
+    description: "Markdown preview, tables, HTML convert",
+    icon: "FileText",
+  },
 ];

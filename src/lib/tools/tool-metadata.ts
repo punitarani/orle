@@ -12,24 +12,7 @@ export { SECTION_META };
 
 // Tools that work in Node.js (no browser APIs required)
 // File-based and canvas-based tools are NOT compatible
-const INCOMPATIBLE_SLUGS = new Set([
-  // Image tools (require Canvas/browser)
-  "image-compress",
-  "image-resize",
-  "image-convert",
-  "image-metadata",
-  "image-strip-metadata",
-  "image-to-ico",
-  "color-picker-image",
-  "palette-extractor",
-  "svg-minify",
-  "qr-reader",
-  // File-based tools
-  "file-hash",
-  "base64-file",
-  "base64-image",
-  "base64-image-preview",
-]);
+const INCOMPATIBLE_SLUGS = new Set(["media-suite"]);
 
 export type ToolMetaWithRaycast = ToolMeta & { raycastCompatible: boolean };
 
