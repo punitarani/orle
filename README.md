@@ -26,5 +26,6 @@ orle.dev is a browser-first collection of developer utilities for encoding, hash
 
 ---
 
-Mustly AI-Generated with Cursor using Claude Opus 4.5 Thinking with most plans available in ./.cursor/plans folder.
-Punit Arani
+Mostly AI-Generated with ChatGPT 5.2 Pro as the planner and orchestrator, Cursor (Claude Opus 4.5) for initial heavy-lifting and Codex CLI (GPT 5.2 Codex) for minor revisions.
+
+- Punit Arani
