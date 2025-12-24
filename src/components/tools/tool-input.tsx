@@ -25,6 +25,8 @@ type ToolInputProps = {
   onFileChange?: (file: File) => void;
   placeholder?: string;
   className?: string;
+  acceptsFile?: boolean;
+  fileAccept?: string;
 };
 
 export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
@@ -36,6 +38,8 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
       onFileChange,
       placeholder = "Enter input...",
       className,
+      acceptsFile,
+      fileAccept,
     },
     ref,
   ) {
@@ -47,9 +51,17 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
       height: number;
     } | null>(null);
 
+    const acceptList = fileAccept
+      ? fileAccept
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : undefined;
+
     const { isDragging, file, clearFile, dropProps, handleFileInput } =
       useFileDrop({
         onDrop: onFileChange,
+        accept: acceptList,
       });
 
     // Generate image preview when file changes
@@ -146,7 +158,7 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
             type="file"
             className="hidden"
             onChange={handleFileInput}
-            accept="image/*"
+            accept={fileAccept || "*/*"}
           />
         </div>
       );
@@ -185,6 +197,7 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
               type="file"
               className="hidden"
               onChange={handleFileInput}
+              accept={fileAccept || "*/*"}
             />
           </div>
         </div>
@@ -192,12 +205,43 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
     }
 
     return (
-      <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={cn("min-h-[200px] resize-y font-mono text-sm", className)}
-      />
+      <div className={cn("flex flex-col gap-2", className)}>
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="min-h-[200px] resize-y font-mono text-sm"
+        />
+        {acceptsFile && onFileChange && (
+          <div className="relative">
+            <button
+              type="button"
+              {...dropProps}
+              className={cn(
+                "flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-left transition-colors",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:border-muted-foreground/50",
+              )}
+              onClick={handleBrowse}
+            >
+              <Upload className="size-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {file
+                  ? `${file.name} (${formatBytes(file.size)})`
+                  : "Drop a file (optional)"}
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileInput}
+              accept={fileAccept || "*/*"}
+            />
+          </div>
+        )}
+      </div>
     );
   },
 );

@@ -1,5 +1,6 @@
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { tools } from "@/lib/tools/registry";
+import { getToolMetaBySlug, TOOL_META } from "@/lib/tools/manifest";
 import { ToolPageClient } from "./tool-page-client";
 
 // Only allow pre-rendered paths
@@ -7,7 +8,7 @@ export const dynamicParams = false;
 
 // Pre-render all tool pages at build time
 export function generateStaticParams() {
-  return tools.map((tool) => ({
+  return TOOL_META.map((tool) => ({
     slug: tool.slug,
   }));
 }
@@ -26,13 +27,25 @@ export default async function ToolPageRoute({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const toolMeta = getToolMetaBySlug(slug);
+  if (!toolMeta) {
+    notFound();
+  }
 
   // Pass only the slug (string) to the client component
   // The client component will look up the tool (which contains functions)
   // Wrap in Suspense because ToolPageClient uses useSearchParams
   return (
-    <Suspense fallback={<ToolPageLoading />}>
-      <ToolPageClient slug={slug} />
-    </Suspense>
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {toolMeta.name}
+        </h1>
+        <p className="text-sm text-muted-foreground">{toolMeta.description}</p>
+      </div>
+      <Suspense fallback={<ToolPageLoading />}>
+        <ToolPageClient slug={slug} />
+      </Suspense>
+    </div>
   );
 }

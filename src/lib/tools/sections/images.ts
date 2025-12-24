@@ -8,6 +8,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["compress", "optimize-image"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     useWorker: "image",
     options: [
@@ -88,6 +89,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["resize", "scale-image"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     useWorker: "image",
     options: [
@@ -185,6 +187,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["png-to-jpg", "jpg-to-png", "webp"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     options: [
       {
@@ -267,6 +270,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["crop"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     options: [
       { id: "x", label: "X offset", type: "number", default: 0, min: 0 },
@@ -324,6 +328,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["rotate", "flip", "mirror"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     options: [
       {
@@ -407,6 +412,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["eyedropper", "pick-color"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "preview",
     transform: async (input) => {
       if (!(input instanceof File)) {
@@ -452,6 +458,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["extract-colors", "dominant-colors"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "text",
     options: [
       {
@@ -571,6 +578,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["decode-qr", "scan-qr"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "text",
     transform: async (input) => {
       if (!(input instanceof File)) {
@@ -606,6 +614,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["ico", "favicon"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "download",
     transform: async (input) => {
       if (!(input instanceof File)) {
@@ -661,6 +670,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["exif", "image-info"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "text",
     transform: async (input) => {
       if (!(input instanceof File)) {
@@ -690,6 +700,7 @@ export const imageTools: ToolDefinition[] = [
     section: "images",
     aliases: ["remove-exif", "clean-image"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "image-result",
     transform: async (input) => {
       if (!(input instanceof File)) {

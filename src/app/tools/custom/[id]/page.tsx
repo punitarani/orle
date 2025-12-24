@@ -275,11 +275,11 @@ export default function CustomToolPage({
     (optId: string, value: unknown) => {
       const newOptions = { ...options, [optId]: value };
       setOptions(newOptions);
-      if (tool && (input || tool.inputType === "none")) {
-        runTransformWithTool(tool, input, newOptions);
+      if (tool && (file || input || tool.inputType === "none")) {
+        runTransformWithTool(tool, file ?? input, newOptions);
       }
     },
-    [tool, input, options, runTransformWithTool],
+    [tool, input, file, options, runTransformWithTool],
   );
 
   const handleClear = useCallback(() => {

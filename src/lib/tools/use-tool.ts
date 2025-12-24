@@ -2,15 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { runToolTransform } from "./runtime/run-tool-transform";
 import type {
   ColorResultData,
   DiffResultData,
+  DownloadResultData,
   ImageResultData,
   ToolDefinition,
   ToolState,
+  ToolTransformInput,
 } from "./types";
 
-const DEBOUNCE_DELAY = 300;
+const DEFAULT_DEBOUNCE_DELAY = 300;
 
 export function useTool(
   tool: ToolDefinition | undefined,
@@ -32,6 +35,7 @@ export function useTool(
     input2: "",
     output: "",
     outputData: undefined,
+    download: undefined,
     options: {},
     isProcessing: false,
     error: null,
@@ -41,43 +45,136 @@ export function useTool(
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const optionsRef = useRef<Record<string, unknown>>({});
   const initializedRef = useRef(false);
+  const runIdRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const downloadUrlRef = useRef<string | null>(null);
+  const inputRef = useRef("");
+  const input2Ref = useRef("");
+
+  const runPolicy = tool?.runPolicy ?? "auto";
+  const debounceMs = tool?.debounceMs ?? DEFAULT_DEBOUNCE_DELAY;
+
+  const buildTransformInput = useCallback(
+    (
+      inputValue: string,
+      input2Value: string,
+      fileValue?: File | null,
+    ): ToolTransformInput => {
+      if (tool?.inputType === "file") {
+        return fileValue ?? inputValue;
+      }
+      if (tool?.acceptsFile && fileValue && !inputValue) {
+        return fileValue;
+      }
+      if (tool?.inputType === "dual") {
+        return { kind: "dual", a: inputValue, b: input2Value };
+      }
+      return inputValue;
+    },
+    [tool?.acceptsFile, tool?.inputType],
+  );
 
   // Keep optionsRef in sync with state
   useEffect(() => {
     optionsRef.current = state.options;
   }, [state.options]);
 
+  useEffect(() => {
+    inputRef.current = state.input;
+    input2Ref.current = state.input2 || "";
+  }, [state.input, state.input2]);
+
+  useEffect(() => {
+    return () => {
+      if (downloadUrlRef.current) {
+        URL.revokeObjectURL(downloadUrlRef.current);
+        downloadUrlRef.current = null;
+      }
+      abortRef.current?.abort();
+    };
+  }, []);
+
   // Transform function - defined early so it can be used in effects
   const transform = useCallback(
-    async (input: string | File, options: Record<string, unknown>) => {
+    async (input: ToolTransformInput, options: Record<string, unknown>) => {
       if (!tool) return;
+
+      runIdRef.current += 1;
+      const runId = runIdRef.current;
+      abortRef.current?.abort();
+      const abortController = new AbortController();
+      abortRef.current = abortController;
 
       setState((prev) => ({ ...prev, isProcessing: true, error: null }));
 
       try {
-        const result = await tool.transform(input, options);
+        const result = await runToolTransform(
+          tool,
+          input,
+          options,
+          abortController.signal,
+        );
+
+        if (runId !== runIdRef.current) return;
 
         if (typeof result === "string") {
+          if (downloadUrlRef.current) {
+            URL.revokeObjectURL(downloadUrlRef.current);
+            downloadUrlRef.current = null;
+          }
           setState((prev) => ({
             ...prev,
             output: result,
             outputData: undefined,
+            download: undefined,
             isProcessing: false,
           }));
         } else if (result && typeof result === "object") {
           if (result.type === "error") {
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+              downloadUrlRef.current = null;
+            }
             setState((prev) => ({
               ...prev,
               error: result.message,
               output: "",
               outputData: undefined,
+              download: undefined,
               isProcessing: false,
             }));
           } else if (result.type === "image") {
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+              downloadUrlRef.current = null;
+            }
             setState((prev) => ({
               ...prev,
               output: result.data,
               outputData: undefined,
+              download: undefined,
+              isProcessing: false,
+            }));
+          } else if (result.type === "download") {
+            const data = result as DownloadResultData;
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+            }
+            const chunk = new Uint8Array(data.data);
+            const blob = new Blob([chunk], { type: data.mime });
+            const url = URL.createObjectURL(blob);
+            downloadUrlRef.current = url;
+
+            setState((prev) => ({
+              ...prev,
+              output: "",
+              outputData: undefined,
+              download: {
+                url,
+                filename: data.filename,
+                mime: data.mime,
+                size: blob.size,
+              },
               isProcessing: false,
             }));
           } else if (
@@ -90,6 +187,10 @@ export function useTool(
               | ImageResultData
               | ColorResultData
               | DiffResultData;
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+              downloadUrlRef.current = null;
+            }
             setState((prev) => ({
               ...prev,
               output:
@@ -99,16 +200,24 @@ export function useTool(
                     ? data.resultUrl
                     : "",
               outputData: data,
+              download: undefined,
               isProcessing: false,
             }));
           }
         }
       } catch (e) {
+        if (runId !== runIdRef.current) return;
+        if ((e as Error).name === "AbortError") return;
+        if (downloadUrlRef.current) {
+          URL.revokeObjectURL(downloadUrlRef.current);
+          downloadUrlRef.current = null;
+        }
         setState((prev) => ({
           ...prev,
           error: (e as Error).message,
           output: "",
           outputData: undefined,
+          download: undefined,
           isProcessing: false,
         }));
       }
@@ -145,10 +254,13 @@ export function useTool(
     if (!initializedRef.current) {
       initializedRef.current = true;
 
-      if (tool.inputType === "none" || initialInput) {
+      if (runPolicy === "auto" && (tool.inputType === "none" || initialInput)) {
         // Use setTimeout to ensure state is updated
         setTimeout(() => {
-          transform(effectiveInput, mergedOptions);
+          transform(
+            buildTransformInput(effectiveInput, effectiveInput2, null),
+            mergedOptions,
+          );
         }, 0);
       }
     }
@@ -160,6 +272,8 @@ export function useTool(
     transform,
     initialInput,
     initialOptions,
+    runPolicy,
+    buildTransformInput,
   ]);
 
   // Debounced input handler
@@ -171,16 +285,27 @@ export function useTool(
         setSavedInput(value);
       }
 
+      if (runPolicy !== "auto") return;
+
       // Debounce transform - use ref to get current options
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
 
       debounceRef.current = setTimeout(() => {
-        transform(value, optionsRef.current);
-      }, DEBOUNCE_DELAY);
+        const input2Value = input2Ref.current;
+        const nextInput = buildTransformInput(value, input2Value, null);
+        transform(nextInput, optionsRef.current);
+      }, debounceMs);
     },
-    [transform, persistInputs, setSavedInput],
+    [
+      transform,
+      persistInputs,
+      setSavedInput,
+      runPolicy,
+      debounceMs,
+      buildTransformInput,
+    ],
   );
 
   // Input 2 handler for dual input (diff tools)
@@ -192,30 +317,38 @@ export function useTool(
         setSavedInput2(value);
       }
 
+      if (runPolicy !== "auto") return;
+
       // Debounce transform with combined input
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
 
       debounceRef.current = setTimeout(() => {
-        setState((current) => {
-          // Combine inputs with separator for transform
-          const combined = `${current.input}\n---SEPARATOR---\n${value}`;
-          transform(combined, optionsRef.current);
-          return current;
-        });
-      }, DEBOUNCE_DELAY);
+        const inputValue = inputRef.current;
+        const nextInput = buildTransformInput(inputValue, value, null);
+        transform(nextInput, optionsRef.current);
+      }, debounceMs);
     },
-    [transform, persistInputs, setSavedInput2],
+    [
+      transform,
+      persistInputs,
+      setSavedInput2,
+      runPolicy,
+      debounceMs,
+      buildTransformInput,
+    ],
   );
 
   // Handle file input
   const setFile = useCallback(
     (file: File) => {
       setState((prev) => ({ ...prev, file }));
-      transform(file, state.options);
+      if (runPolicy === "auto") {
+        transform(file, optionsRef.current);
+      }
     },
-    [transform, state.options],
+    [transform, runPolicy],
   );
 
   // Handle option change
@@ -223,31 +356,55 @@ export function useTool(
     (id: string, value: unknown) => {
       setState((prev) => {
         const newOptions = { ...prev.options, [id]: value };
-        // Re-transform with new options (for generators too)
-        if (prev.input || tool?.inputType === "none") {
-          transform(prev.input, newOptions);
+        if (runPolicy === "auto") {
+          const nextInput = buildTransformInput(
+            prev.input,
+            prev.input2 || "",
+            prev.file ?? null,
+          );
+          if (prev.input || prev.file || tool?.inputType === "none") {
+            transform(nextInput, newOptions);
+          }
         }
         return { ...prev, options: newOptions };
       });
     },
-    [transform, tool?.inputType],
+    [transform, tool?.inputType, runPolicy, buildTransformInput],
   );
 
   // Manual transform trigger
   const runTransform = useCallback(() => {
-    if (state.input || tool?.inputType === "none") {
-      transform(state.input, state.options);
+    const nextInput = buildTransformInput(
+      state.input,
+      state.input2 || "",
+      state.file ?? null,
+    );
+    if (state.input || state.file || tool?.inputType === "none") {
+      transform(nextInput, state.options);
     }
-  }, [transform, state.input, state.options, tool?.inputType]);
+  }, [
+    transform,
+    state.input,
+    state.input2,
+    state.file,
+    state.options,
+    tool?.inputType,
+    buildTransformInput,
+  ]);
 
   // Clear all
   const clear = useCallback(() => {
+    if (downloadUrlRef.current) {
+      URL.revokeObjectURL(downloadUrlRef.current);
+      downloadUrlRef.current = null;
+    }
     setState((prev) => ({
       ...prev,
       input: "",
       input2: "",
       output: "",
       outputData: undefined,
+      download: undefined,
       error: null,
       file: null,
     }));
@@ -257,11 +414,16 @@ export function useTool(
 
   // Clear file only
   const clearFile = useCallback(() => {
+    if (downloadUrlRef.current) {
+      URL.revokeObjectURL(downloadUrlRef.current);
+      downloadUrlRef.current = null;
+    }
     setState((prev) => ({
       ...prev,
       file: null,
       output: "",
       outputData: undefined,
+      download: undefined,
       error: null,
     }));
   }, []);

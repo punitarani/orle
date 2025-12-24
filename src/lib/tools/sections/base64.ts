@@ -1,3 +1,17 @@
+import {
+  base64ToBytes,
+  base64ToUrlSafe,
+  bytesToBase64,
+  bytesToHex,
+  bytesToUtf8,
+  hexToBytes,
+  normalizeBase64,
+  parseBigInt,
+  parseDataUrl,
+  sniffImageMime,
+  utf8ToBytes,
+  wrap76,
+} from "../lib/bytes-codec";
 import type { ToolDefinition } from "../types";
 
 export const base64Tools: ToolDefinition[] = [
@@ -39,24 +53,19 @@ export const base64Tools: ToolDefinition[] = [
       if (!str) return "";
       try {
         if (opts.mode === "encode") {
-          let result = btoa(unescape(encodeURIComponent(str)));
+          const bytes = utf8ToBytes(str);
+          let result = bytesToBase64(bytes);
           if (opts.urlSafe) {
-            result = result
-              .replace(/\+/g, "-")
-              .replace(/\//g, "_")
-              .replace(/=+$/, "");
+            result = base64ToUrlSafe(result);
           }
           if (opts.lineWrap) {
-            result = result.match(/.{1,76}/g)?.join("\n") || result;
+            result = wrap76(result);
           }
           return result;
         }
-        let decoded = str.replace(/\s/g, "");
-        if (opts.urlSafe) {
-          decoded = decoded.replace(/-/g, "+").replace(/_/g, "/");
-          while (decoded.length % 4) decoded += "=";
-        }
-        return decodeURIComponent(escape(atob(decoded)));
+        const normalized = normalizeBase64(str, Boolean(opts.urlSafe));
+        const bytes = base64ToBytes(normalized);
+        return bytesToUtf8(bytes);
       } catch {
         return { type: "error", message: "Invalid Base64 string" };
       }
@@ -69,8 +78,10 @@ export const base64Tools: ToolDefinition[] = [
     description: "Convert files to/from Base64",
     section: "base64",
     aliases: ["file-base64", "binary-base64"],
-    inputType: "dual",
+    inputType: "text",
     outputType: "text",
+    acceptsFile: true,
+    fileAccept: "*/*",
     options: [
       {
         id: "mode",
@@ -82,22 +93,58 @@ export const base64Tools: ToolDefinition[] = [
           { value: "decode", label: "Base64 → Download" },
         ],
       },
+      {
+        id: "filename",
+        label: "Download filename",
+        type: "text",
+        default: "decoded.bin",
+        visibleWhen: { optionId: "mode", equals: "decode" },
+      },
+      {
+        id: "mime",
+        label: "MIME type",
+        type: "text",
+        default: "application/octet-stream",
+        visibleWhen: { optionId: "mode", equals: "decode" },
+      },
     ],
     transform: async (input, opts) => {
       if (opts.mode === "encode") {
         if (input instanceof File) {
           const buffer = await input.arrayBuffer();
           const bytes = new Uint8Array(buffer);
-          let binary = "";
-          bytes.forEach((b) => {
-            binary += String.fromCharCode(b);
-          });
-          return btoa(binary);
+          return bytesToBase64(bytes);
         }
         return { type: "error", message: "Please drop a file" };
       }
-      // For decode mode, return the base64 as-is (download handled by UI)
-      return String(input);
+      const raw = String(input).trim();
+      if (!raw) return "";
+
+      try {
+        let base64 = raw;
+        let detectedMime = "application/octet-stream";
+        const dataUrl = parseDataUrl(raw);
+        if (dataUrl) {
+          if (!dataUrl.isBase64) {
+            return {
+              type: "error",
+              message: "Data URL must be base64-encoded",
+            };
+          }
+          base64 = dataUrl.data;
+          detectedMime = dataUrl.mime || detectedMime;
+        }
+
+        const urlSafe = /[-_]/.test(base64);
+        const normalized = normalizeBase64(base64, urlSafe);
+        const bytes = base64ToBytes(normalized);
+        const filename = String(opts.filename || "decoded.bin");
+        const mime = String(opts.mime || detectedMime);
+
+        return { type: "download", data: bytes, filename, mime };
+      } catch {
+        return { type: "error", message: "Invalid Base64 string" };
+      }
     },
   },
   {
@@ -144,18 +191,23 @@ export const base64Tools: ToolDefinition[] = [
     transform: (input) => {
       const str = String(input).trim();
       if (!str) return "";
-      if (str.startsWith("data:image/")) {
+      const dataUrl = parseDataUrl(str);
+      if (dataUrl?.mime.startsWith("image/")) {
+        if (!dataUrl.isBase64) {
+          return { type: "error", message: "Image data URL must be base64" };
+        }
         return { type: "image", data: str };
       }
-      // Assume it's raw base64, try to detect format
-      const formats = ["png", "jpeg", "gif", "webp", "svg+xml"];
-      for (const fmt of formats) {
-        try {
-          const dataUrl = `data:image/${fmt};base64,${str}`;
-          return { type: "image", data: dataUrl };
-        } catch {}
+
+      try {
+        const normalized = normalizeBase64(str, true);
+        const bytes = base64ToBytes(normalized);
+        const mime = sniffImageMime(bytes) ?? "image/png";
+        const base64 = bytesToBase64(bytes);
+        return { type: "image", data: `data:${mime};base64,${base64}` };
+      } catch {
+        return { type: "error", message: "Invalid Base64 string" };
       }
-      return { type: "image", data: `data:image/png;base64,${str}` };
     },
   },
   {
@@ -165,6 +217,7 @@ export const base64Tools: ToolDefinition[] = [
     section: "base64",
     aliases: ["img-base64", "image-data-url"],
     inputType: "file",
+    fileAccept: "image/*",
     outputType: "text",
     options: [
       {
@@ -180,11 +233,7 @@ export const base64Tools: ToolDefinition[] = [
       }
       const buffer = await input.arrayBuffer();
       const bytes = new Uint8Array(buffer);
-      let binary = "";
-      bytes.forEach((b) => {
-        binary += String.fromCharCode(b);
-      });
-      const base64 = btoa(binary);
+      const base64 = bytesToBase64(bytes);
       if (opts.includeDataUrl) {
         return `data:${input.type};base64,${base64}`;
       }
@@ -224,23 +273,17 @@ export const base64Tools: ToolDefinition[] = [
       const str = String(input);
       if (!str) return "";
       if (opts.mode === "encode") {
-        const encoder = new TextEncoder();
-        const bytes = encoder.encode(str);
-        let hex = Array.from(bytes)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join(opts.spacing ? " " : "");
-        if (opts.uppercase) hex = hex.toUpperCase();
+        const bytes = utf8ToBytes(str);
+        let hex = bytesToHex(bytes, Boolean(opts.uppercase));
+        if (opts.spacing) {
+          hex = hex.match(/.{1,2}/g)?.join(" ") ?? hex;
+        }
         if (opts.prefix) hex = `0x${hex.replace(/ /g, " 0x")}`;
         return hex;
       }
       try {
-        let clean = str.replace(/0x/gi, "").replace(/\s/g, "");
-        if (clean.length % 2 !== 0) clean = `0${clean}`;
-        const matches = clean.match(/.{2}/g) ?? [];
-        const bytes = new Uint8Array(
-          matches.map((h) => Number.parseInt(h, 16)),
-        );
-        return new TextDecoder().decode(bytes);
+        const bytes = hexToBytes(str);
+        return bytesToUtf8(bytes);
       } catch {
         return { type: "error", message: "Invalid hex string" };
       }
@@ -268,8 +311,7 @@ export const base64Tools: ToolDefinition[] = [
     transform: (input, opts) => {
       const str = String(input);
       if (!str) return "";
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(str);
+      const bytes = utf8ToBytes(str);
       const perLine = Number(opts.bytesPerLine) || 16;
       const lines: string[] = [];
 
@@ -314,9 +356,9 @@ export const base64Tools: ToolDefinition[] = [
       const str = String(input).trim().replace(/\s/g, "");
       if (!str) return "";
       try {
-        const num = Number.parseInt(str, Number(opts.fromBase));
-        if (Number.isNaN(num))
-          return { type: "error", message: "Invalid number" };
+        const fromBase = Number(opts.fromBase);
+        const normalized = fromBase === 16 ? str.replace(/^0x/i, "") : str;
+        const num = parseBigInt(normalized, fromBase);
         return [
           `Binary:      ${num.toString(2)}`,
           `Octal:       ${num.toString(8)}`,
@@ -354,17 +396,23 @@ export const base64Tools: ToolDefinition[] = [
       for (const char of str) {
         const codePoint = char.codePointAt(0);
         if (codePoint === undefined) continue;
-        const utf8Bytes = new TextEncoder().encode(char);
+        const utf8Bytes = utf8ToBytes(char);
         const utf16Units = char.length; // 1 for BMP, 2 for surrogate pair
         result.push(
           `${char.padEnd(4)} | U+${codePoint.toString(16).toUpperCase().padStart(4, "0")} | ${utf8Bytes.length} byte(s) | ${utf16Units} unit(s)`,
         );
       }
 
-      const totalUtf8 = new TextEncoder().encode(str).length;
+      const totalUtf8 = utf8ToBytes(str).length;
+      const totalCodePoints = Array.from(str).length;
+      const totalUtf16 = str.length;
+      const graphemeCount =
+        typeof Intl !== "undefined" && "Segmenter" in Intl
+          ? Array.from(new Intl.Segmenter().segment(str)).length
+          : undefined;
       result.push("─".repeat(50));
       result.push(
-        `Total: ${str.length} chars, ${totalUtf8} UTF-8 bytes, ${str.length} UTF-16 units`,
+        `Total: ${totalCodePoints} code points, ${totalUtf8} UTF-8 bytes, ${totalUtf16} UTF-16 units${graphemeCount ? `, ${graphemeCount} graphemes` : ""}`,
       );
       return result.join("\n");
     },
@@ -403,9 +451,10 @@ export const base64Tools: ToolDefinition[] = [
       const str = String(input);
       if (!str) return "";
       if (opts.mode === "toBinary") {
-        const binary = str
-          .split("")
-          .map((c) => c.charCodeAt(0).toString(2).padStart(8, "0"));
+        const bytes = utf8ToBytes(str);
+        const binary = Array.from(bytes).map((b) =>
+          b.toString(2).padStart(8, "0"),
+        );
         return opts.spacing ? binary.join(" ") : binary.join("");
       }
       try {
@@ -416,8 +465,8 @@ export const base64Tools: ToolDefinition[] = [
             message: "Invalid binary (must be multiple of 8 bits)",
           };
         const matches = clean.match(/.{8}/g) ?? [];
-        const bytes = matches.map((b) => Number.parseInt(b, 2));
-        return String.fromCharCode(...bytes);
+        const bytes = new Uint8Array(matches.map((b) => Number.parseInt(b, 2)));
+        return bytesToUtf8(bytes);
       } catch {
         return { type: "error", message: "Invalid binary string" };
       }

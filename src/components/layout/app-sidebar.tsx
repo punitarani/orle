@@ -1,6 +1,25 @@
 "use client";
 
-import { ChevronRight, Info, Sparkles, Trash2, Wand2 } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Binary,
+  Calculator,
+  ChevronRight,
+  Clock,
+  FileText,
+  Globe,
+  Hash,
+  Image as ImageIcon,
+  Info,
+  Link as LinkIcon,
+  Lock,
+  Palette,
+  Sparkles,
+  Terminal,
+  Trash2,
+  Type,
+  Wand2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,8 +50,25 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { deleteCustomTool, listCustomTools } from "@/lib/tools/custom-tools-db";
-import { getToolsBySection, SECTIONS } from "@/lib/tools/registry";
+import { getToolsBySection } from "@/lib/tools/manifest";
+import { SECTION_META } from "@/lib/tools/section-meta";
 import type { CustomToolDefinition } from "@/lib/tools/types";
+
+const SECTION_ICONS = {
+  Link: LinkIcon,
+  Binary,
+  Type,
+  FileText,
+  ArrowLeftRight,
+  Lock,
+  Hash,
+  Clock,
+  Calculator,
+  Globe,
+  Image: ImageIcon,
+  Palette,
+  Terminal,
+} as const;
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -77,7 +113,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="h-14 border-b border-sidebar-border px-3">
         <div className="flex h-full items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" prefetch={false} className="flex items-center gap-2.5">
             <Image
               src="/logo.png"
               alt="orle.dev logo"
@@ -120,7 +156,7 @@ export function AppSidebar() {
                         size="sm"
                         className="text-primary hover:text-primary"
                       >
-                        <Link href="/tools/generate">
+                        <Link href="/tools/generate" prefetch={false}>
                           <Sparkles className="size-3.5 mr-1" />
                           Generate New Tool
                         </Link>
@@ -141,7 +177,10 @@ export function AppSidebar() {
                             isActive={isToolActive}
                             size="sm"
                           >
-                            <Link href={`/tools/custom/${tool.id}`}>
+                            <Link
+                              href={`/tools/custom/${tool.id}`}
+                              prefetch={false}
+                            >
                               {tool.name}
                             </Link>
                           </SidebarMenuSubButton>
@@ -176,9 +215,10 @@ export function AppSidebar() {
         {/* Built-in Tools Sections */}
         <SidebarGroup className="p-0">
           <SidebarMenu>
-            {SECTIONS.map((section) => {
+            {SECTION_META.map((section) => {
               const tools = getToolsBySection(section.id);
-              const Icon = section.icon;
+              const iconKey = section.icon as keyof typeof SECTION_ICONS;
+              const Icon = SECTION_ICONS[iconKey] ?? Hash;
               const isActive = tools.some(
                 (t) => pathname === `/tools/${t.slug}`,
               );
@@ -211,7 +251,10 @@ export function AppSidebar() {
                                 isActive={isToolActive}
                                 size="sm"
                               >
-                                <Link href={`/tools/${tool.slug}`}>
+                                <Link
+                                  href={`/tools/${tool.slug}`}
+                                  prefetch={false}
+                                >
                                   {tool.name}
                                 </Link>
                               </SidebarMenuSubButton>

@@ -3,15 +3,25 @@ import { z } from "zod";
 
 export type ToolOptionType = "toggle" | "select" | "number" | "text";
 
+export type ToolOptionCondition = {
+  optionId: string;
+  equals: string | number | boolean | Array<string | number | boolean>;
+};
+
 export type ToolOption = {
   id: string;
   label: string;
   type: ToolOptionType;
   default: unknown;
+  description?: string;
   options?: { value: string; label: string }[]; // For select type
   min?: number; // For number type
   max?: number;
   step?: number;
+  visibleWhen?: ToolOptionCondition;
+  enabledWhen?: ToolOptionCondition;
+  group?: string;
+  advanced?: boolean;
 };
 
 export type ToolInputType = "text" | "file" | "dual" | "none";
@@ -24,6 +34,14 @@ export type ToolOutputType =
   | "image-result"
   | "color"
   | "diff";
+
+export type ToolInput =
+  | { kind: "none" }
+  | { kind: "text"; text: string }
+  | { kind: "dual"; a: string; b: string }
+  | { kind: "file"; file: File };
+
+export type ToolTransformInput = string | File | ToolInput;
 
 export type ToolExample = {
   name?: string;
@@ -70,10 +88,18 @@ export type DiffResultData = {
   };
 };
 
+export type DownloadResultData = {
+  type: "download";
+  data: Uint8Array;
+  filename: string;
+  mime: string;
+};
+
 export type ToolTransformResult =
   | string
   | { type: "image"; data: string }
   | { type: "error"; message: string }
+  | DownloadResultData
   | ImageResultData
   | ColorResultData
   | DiffResultData;
@@ -88,7 +114,7 @@ export type ToolDefinition = {
   outputType: ToolOutputType;
   options?: ToolOption[];
   transform: (
-    input: string | File,
+    input: ToolTransformInput,
     options: Record<string, unknown>,
   ) => ToolTransformResult | Promise<ToolTransformResult>;
   examples?: ToolExample[];
@@ -96,6 +122,10 @@ export type ToolDefinition = {
   allowSwap?: boolean;
   inputPlaceholder?: string;
   outputPlaceholder?: string;
+  acceptsFile?: boolean;
+  fileAccept?: string;
+  runPolicy?: "auto" | "manual";
+  debounceMs?: number;
 };
 
 export type ToolSection = {
@@ -110,6 +140,12 @@ export type ToolState = {
   input2?: string; // For dual input (diff tools)
   output: string;
   outputData?: ImageResultData | ColorResultData | DiffResultData; // Structured output
+  download?: {
+    url: string;
+    filename: string;
+    mime: string;
+    size: number;
+  };
   options: Record<string, unknown>;
   isProcessing: boolean;
   error: string | null;

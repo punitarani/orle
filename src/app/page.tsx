@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HomeOmnibox } from "@/components/home/home-omnibox";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { tools } from "@/lib/tools/registry";
+import { TOOL_META } from "@/lib/tools/manifest";
 
 export default function HomePage() {
   return (
@@ -21,8 +21,8 @@ export default function HomePage() {
               Find or build the tool you need.
             </h1>
             <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
-              {tools.length}+ local-first utilities for encoding, formatting,
-              and automation.
+              {TOOL_META.length}+ local-first utilities for encoding,
+              formatting, and automation.
             </p>
           </div>
 

@@ -9,6 +9,7 @@
     "lint": "biome check",
     "lint:fix": "biome check --write --unsafe",
     "format": "biome format --write",
+    "tools": "bun run scripts/generate-tool-manifest.ts",
     "devtools": "npx @ai-sdk/devtools",
     "raycast:dev": "cd raycast && bun run dev",
     "raycast:build": "cd raycast && bun run build",

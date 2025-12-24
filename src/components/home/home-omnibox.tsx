@@ -13,8 +13,10 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { getToolBySlug, SECTIONS, searchTools } from "@/lib/tools/registry";
-import type { ToolDefinition } from "@/lib/tools/types";
+import { getToolMetaBySlug } from "@/lib/tools/manifest";
+import type { ToolMeta } from "@/lib/tools/manifest-types";
+import { searchTools } from "@/lib/tools/search";
+import { SECTION_META } from "@/lib/tools/section-meta";
 
 const POPULAR_SLUGS = [
   "json-format",
@@ -32,11 +34,11 @@ const EXAMPLE_QUERIES = [
   "JWT decoder",
 ];
 
-function usePopularTools(): ToolDefinition[] {
+function usePopularTools(): ToolMeta[] {
   return useMemo(
     () =>
-      POPULAR_SLUGS.map((slug) => getToolBySlug(slug)).filter(
-        (tool): tool is ToolDefinition => Boolean(tool),
+      POPULAR_SLUGS.map((slug) => getToolMetaBySlug(slug)).filter(
+        (tool): tool is ToolMeta => Boolean(tool),
       ),
     [],
   );
@@ -65,7 +67,7 @@ export function HomeOmnibox() {
       values.push(tool.slug);
     });
     if (!normalizedQuery) {
-      SECTIONS.slice(0, 6).forEach((section) => {
+      SECTION_META.slice(0, 6).forEach((section) => {
         values.push(`section-${section.id}`);
       });
     }
@@ -244,7 +246,7 @@ export function HomeOmnibox() {
                   <>
                     <CommandSeparator />
                     <CommandGroup heading="Browse categories">
-                      {SECTIONS.slice(0, 6).map((section) => (
+                      {SECTION_META.slice(0, 6).map((section) => (
                         <CommandItem
                           key={section.id}
                           value={`section-${section.id}`}

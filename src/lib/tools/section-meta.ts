@@ -1,0 +1,82 @@
+import type { SectionMeta } from "./manifest-types";
+
+export const SECTION_META: SectionMeta[] = [
+  {
+    id: "encoding",
+    name: "URL & Encoding",
+    description: "URL encode/decode, HTML entities, Unicode",
+    icon: "Link",
+  },
+  {
+    id: "base64",
+    name: "Base64 & Bytes",
+    description: "Base64, hex, binary conversions",
+    icon: "Binary",
+  },
+  {
+    id: "text",
+    name: "Text Transforms",
+    description: "Case, whitespace, sort, filter",
+    icon: "Type",
+  },
+  {
+    id: "formats",
+    name: "JSON, YAML, XML",
+    description: "Format, validate, convert",
+    icon: "FileText",
+  },
+  {
+    id: "diff",
+    name: "Diff & Compare",
+    description: "Text diff, JSON diff, similarity",
+    icon: "ArrowLeftRight",
+  },
+  {
+    id: "crypto",
+    name: "Crypto & Hashing",
+    description: "Hash, HMAC, JWT, passwords",
+    icon: "Lock",
+  },
+  {
+    id: "ids",
+    name: "IDs & Tokens",
+    description: "UUID, ULID, NanoID generators",
+    icon: "Hash",
+  },
+  {
+    id: "datetime",
+    name: "Date & Time",
+    description: "Epoch, timezone, duration",
+    icon: "Clock",
+  },
+  {
+    id: "numbers",
+    name: "Numbers & Bits",
+    description: "Base converter, bitwise, IP",
+    icon: "Calculator",
+  },
+  {
+    id: "http",
+    name: "HTTP Helpers",
+    description: "Headers, cURL, status codes",
+    icon: "Globe",
+  },
+  {
+    id: "images",
+    name: "Images & Media",
+    description: "Compress, resize, QR codes",
+    icon: "Image",
+  },
+  {
+    id: "colors",
+    name: "Colors & CSS",
+    description: "Color convert, contrast, CSS",
+    icon: "Palette",
+  },
+  {
+    id: "code",
+    name: "Code Cleanup",
+    description: "Beautify, escape, minify",
+    icon: "Terminal",
+  },
+];

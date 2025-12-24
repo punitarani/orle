@@ -1,0 +1,3864 @@
+[
+  {
+    "slug": "url-encode",
+    "name": "URL Encode / Decode",
+    "description": "Encode or decode URL components and full URLs",
+    "section": "encoding",
+    "aliases": [
+      "urlencode",
+      "percent-encoding",
+      "encodeuri",
+      "encodeURIComponent"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encode",
+        "options": [
+          {
+            "value": "encode",
+            "label": "Encode"
+          },
+          {
+            "value": "decode",
+            "label": "Decode"
+          }
+        ]
+      },
+      {
+        "id": "type",
+        "label": "Type",
+        "type": "select",
+        "default": "component",
+        "options": [
+          {
+            "value": "component",
+            "label": "Component (encodeURIComponent)"
+          },
+          {
+            "value": "full",
+            "label": "Full URL (encodeURI)"
+          }
+        ]
+      },
+      {
+        "id": "spaceAsPlus",
+        "label": "Space as +",
+        "type": "toggle",
+        "default": false
+      }
+    ],
+    "inputPlaceholder": "Enter text to encode...",
+    "allowSwap": true
+  },
+  {
+    "slug": "url-parse",
+    "name": "Parse URL",
+    "description": "Break down a URL into its components",
+    "section": "encoding",
+    "aliases": ["url-parts", "url-components", "parse-uri"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter a URL to parse..."
+  },
+  {
+    "slug": "query-string-json",
+    "name": "Query String ↔ JSON",
+    "description": "Convert between query strings and JSON objects",
+    "section": "encoding",
+    "aliases": ["querystring", "qs", "search-params"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "toJson",
+        "options": [
+          {
+            "value": "toJson",
+            "label": "Query String → JSON"
+          },
+          {
+            "value": "toQuery",
+            "label": "JSON → Query String"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "utm-stripper",
+    "name": "UTM / Tracking Stripper",
+    "description": "Remove common tracking parameters from URLs",
+    "section": "encoding",
+    "aliases": ["remove-tracking", "clean-url", "fbclid", "gclid"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "url-normalize",
+    "name": "URL Normalizer",
+    "description": "Normalize URLs: lowercase host, remove default ports, clean slashes",
+    "section": "encoding",
+    "aliases": ["clean-url", "normalize-uri"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "data-url",
+    "name": "Data URL Builder / Parser",
+    "description": "Build or parse data: URLs (base64 encoded)",
+    "section": "encoding",
+    "aliases": ["data-uri", "base64-url"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "build",
+        "options": [
+          {
+            "value": "build",
+            "label": "Build Data URL"
+          },
+          {
+            "value": "parse",
+            "label": "Parse Data URL"
+          }
+        ]
+      },
+      {
+        "id": "mimeType",
+        "label": "MIME Type",
+        "type": "text",
+        "default": "text/plain"
+      }
+    ]
+  },
+  {
+    "slug": "punycode",
+    "name": "IDN / Punycode Converter",
+    "description": "Convert between Unicode domains and ASCII Punycode",
+    "section": "encoding",
+    "aliases": ["idn", "internationalized-domain"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "toAscii",
+        "options": [
+          {
+            "value": "toAscii",
+            "label": "Unicode → Punycode"
+          },
+          {
+            "value": "toUnicode",
+            "label": "Punycode → Unicode"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "html-entities",
+    "name": "HTML Entity Encode / Decode",
+    "description": "Convert special characters to HTML entities and back",
+    "section": "encoding",
+    "aliases": ["html-escape", "htmlencode", "amp"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encode",
+        "options": [
+          {
+            "value": "encode",
+            "label": "Encode"
+          },
+          {
+            "value": "decode",
+            "label": "Decode"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "xml-escape",
+    "name": "XML Escape / Unescape",
+    "description": "Escape or unescape XML special characters",
+    "section": "encoding",
+    "aliases": ["xml-entities"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "escape",
+        "options": [
+          {
+            "value": "escape",
+            "label": "Escape"
+          },
+          {
+            "value": "unescape",
+            "label": "Unescape"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "unicode-escape",
+    "name": "Unicode Escape / Unescape",
+    "description": "Convert to/from \\uXXXX Unicode escape sequences",
+    "section": "encoding",
+    "aliases": ["unicode", "utf16-escape"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "escape",
+        "options": [
+          {
+            "value": "escape",
+            "label": "Escape"
+          },
+          {
+            "value": "unescape",
+            "label": "Unescape"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "json-string-escape",
+    "name": "JSON String Escape / Unescape",
+    "description": "Escape or unescape strings for JSON embedding",
+    "section": "encoding",
+    "aliases": ["json-escape", "stringify"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "escape",
+        "options": [
+          {
+            "value": "escape",
+            "label": "Escape"
+          },
+          {
+            "value": "unescape",
+            "label": "Unescape"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "base64-text",
+    "name": "Base64 Encode / Decode (Text)",
+    "description": "Encode or decode UTF-8 text to/from Base64",
+    "section": "base64",
+    "aliases": ["base64", "btoa", "atob"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encode",
+        "options": [
+          {
+            "value": "encode",
+            "label": "Encode"
+          },
+          {
+            "value": "decode",
+            "label": "Decode"
+          }
+        ]
+      },
+      {
+        "id": "urlSafe",
+        "label": "URL-safe Base64",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "lineWrap",
+        "label": "Line wrap (76 chars)",
+        "type": "toggle",
+        "default": false
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "base64-file",
+    "name": "Base64 Encode / Decode (File)",
+    "description": "Convert files to/from Base64",
+    "section": "base64",
+    "aliases": ["file-base64", "binary-base64"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encode",
+        "options": [
+          {
+            "value": "encode",
+            "label": "File → Base64"
+          },
+          {
+            "value": "decode",
+            "label": "Base64 → Download"
+          }
+        ]
+      },
+      {
+        "id": "filename",
+        "label": "Download filename",
+        "type": "text",
+        "default": "decoded.bin",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "decode"
+        }
+      },
+      {
+        "id": "mime",
+        "label": "MIME type",
+        "type": "text",
+        "default": "application/octet-stream",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "decode"
+        }
+      }
+    ],
+    "acceptsFile": true,
+    "fileAccept": "*/*"
+  },
+  {
+    "slug": "base64-url-convert",
+    "name": "Base64 ↔ Base64URL",
+    "description": "Convert between standard Base64 and URL-safe Base64",
+    "section": "base64",
+    "aliases": ["base64url", "url-safe-base64"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "toUrl",
+        "options": [
+          {
+            "value": "toUrl",
+            "label": "Base64 → Base64URL"
+          },
+          {
+            "value": "toStd",
+            "label": "Base64URL → Base64"
+          }
+        ]
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "base64-image-preview",
+    "name": "Base64 → Image Preview",
+    "description": "Preview an image from Base64 or Data URL",
+    "section": "base64",
+    "aliases": ["image-preview", "data-url-preview"],
+    "inputType": "text",
+    "outputType": "image",
+    "inputPlaceholder": "Paste Base64 or data:image/... URL"
+  },
+  {
+    "slug": "image-to-base64",
+    "name": "Image → Base64",
+    "description": "Convert an image file to Base64 or Data URL",
+    "section": "base64",
+    "aliases": ["img-base64", "image-data-url"],
+    "inputType": "file",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "includeDataUrl",
+        "label": "Include data: prefix",
+        "type": "toggle",
+        "default": true
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "hex-encode",
+    "name": "Hex Encode / Decode",
+    "description": "Convert text to/from hexadecimal representation",
+    "section": "base64",
+    "aliases": ["hexadecimal", "hex", "text-to-hex"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encode",
+        "options": [
+          {
+            "value": "encode",
+            "label": "Text → Hex"
+          },
+          {
+            "value": "decode",
+            "label": "Hex → Text"
+          }
+        ]
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "prefix",
+        "label": "0x prefix",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "spacing",
+        "label": "Space between bytes",
+        "type": "toggle",
+        "default": false
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "bytes-viewer",
+    "name": "Bytes Viewer",
+    "description": "View text as hex dump with offset and ASCII columns",
+    "section": "base64",
+    "aliases": ["hex-dump", "hex-viewer", "binary-viewer"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "bytesPerLine",
+        "label": "Bytes per line",
+        "type": "number",
+        "default": 16,
+        "min": 8,
+        "max": 32
+      }
+    ]
+  },
+  {
+    "slug": "base64-converter",
+    "name": "Binary / Octal / Decimal Converter",
+    "description": "Convert numbers between binary, octal, decimal, and hexadecimal",
+    "section": "base64",
+    "aliases": ["bin", "oct", "dec", "number-base"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "fromBase",
+        "label": "From Base",
+        "type": "select",
+        "default": "10",
+        "options": [
+          {
+            "value": "2",
+            "label": "Binary (2)"
+          },
+          {
+            "value": "8",
+            "label": "Octal (8)"
+          },
+          {
+            "value": "10",
+            "label": "Decimal (10)"
+          },
+          {
+            "value": "16",
+            "label": "Hexadecimal (16)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "utf-inspector",
+    "name": "UTF-8 / UTF-16 Code Unit Inspector",
+    "description": "Inspect code points, surrogate pairs, and byte lengths",
+    "section": "base64",
+    "aliases": ["codepoint", "unicode-inspector", "emoji-bytes"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "ascii-binary",
+    "name": "ASCII ↔ Binary",
+    "description": "Convert text to/from 8-bit binary representation",
+    "section": "base64",
+    "aliases": ["text-binary", "binary-text"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "toBinary",
+        "options": [
+          {
+            "value": "toBinary",
+            "label": "Text → Binary"
+          },
+          {
+            "value": "toText",
+            "label": "Binary → Text"
+          }
+        ]
+      },
+      {
+        "id": "spacing",
+        "label": "Space between bytes",
+        "type": "toggle",
+        "default": true
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "case-converter",
+    "name": "Case Converter",
+    "description": "Convert text between camelCase, PascalCase, snake_case, kebab-case, and more",
+    "section": "text",
+    "aliases": [
+      "camelcase",
+      "snakecase",
+      "pascalcase",
+      "kebabcase",
+      "uppercase",
+      "lowercase"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "case",
+        "label": "Convert to",
+        "type": "select",
+        "default": "camel",
+        "options": [
+          {
+            "value": "camel",
+            "label": "camelCase"
+          },
+          {
+            "value": "pascal",
+            "label": "PascalCase"
+          },
+          {
+            "value": "snake",
+            "label": "snake_case"
+          },
+          {
+            "value": "kebab",
+            "label": "kebab-case"
+          },
+          {
+            "value": "constant",
+            "label": "CONSTANT_CASE"
+          },
+          {
+            "value": "title",
+            "label": "Title Case"
+          },
+          {
+            "value": "sentence",
+            "label": "Sentence case"
+          },
+          {
+            "value": "lower",
+            "label": "lowercase"
+          },
+          {
+            "value": "upper",
+            "label": "UPPERCASE"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "slugify",
+    "name": "Slugify",
+    "description": "Convert text to URL-friendly slugs",
+    "section": "text",
+    "aliases": ["url-slug", "permalink"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "separator",
+        "label": "Separator",
+        "type": "text",
+        "default": "-"
+      },
+      {
+        "id": "lowercase",
+        "label": "Lowercase",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "asciiOnly",
+        "label": "ASCII only",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  },
+  {
+    "slug": "whitespace-normalize",
+    "name": "Whitespace Normalizer",
+    "description": "Normalize spaces, tabs, and trim lines",
+    "section": "text",
+    "aliases": ["trim", "clean-whitespace", "remove-extra-spaces"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "collapseSpaces",
+        "label": "Collapse multiple spaces",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "trimLines",
+        "label": "Trim each line",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "removeBlankLines",
+        "label": "Remove blank lines",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "tabs-spaces",
+    "name": "Tabs ↔ Spaces",
+    "description": "Convert between tabs and spaces",
+    "section": "text",
+    "aliases": ["indent", "tab-to-space", "space-to-tab"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "tabsToSpaces",
+        "options": [
+          {
+            "value": "tabsToSpaces",
+            "label": "Tabs → Spaces"
+          },
+          {
+            "value": "spacesToTabs",
+            "label": "Spaces → Tabs"
+          }
+        ]
+      },
+      {
+        "id": "tabWidth",
+        "label": "Tab width",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ]
+  },
+  {
+    "slug": "indent",
+    "name": "Indent / Outdent",
+    "description": "Add or remove leading indentation",
+    "section": "text",
+    "aliases": ["add-indent", "remove-indent"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "indent",
+        "options": [
+          {
+            "value": "indent",
+            "label": "Indent"
+          },
+          {
+            "value": "outdent",
+            "label": "Outdent"
+          }
+        ]
+      },
+      {
+        "id": "spaces",
+        "label": "Spaces",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ]
+  },
+  {
+    "slug": "line-endings",
+    "name": "Line Ending Converter",
+    "description": "Convert between LF (Unix) and CRLF (Windows) line endings",
+    "section": "text",
+    "aliases": ["crlf", "lf", "newline", "eol"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Convert to",
+        "type": "select",
+        "default": "lf",
+        "options": [
+          {
+            "value": "lf",
+            "label": "LF (Unix/Mac)"
+          },
+          {
+            "value": "crlf",
+            "label": "CRLF (Windows)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "sort-lines",
+    "name": "Sort Lines",
+    "description": "Sort lines alphabetically, numerically, or naturally",
+    "section": "text",
+    "aliases": ["alphabetize", "order-lines"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "order",
+        "label": "Order",
+        "type": "select",
+        "default": "asc",
+        "options": [
+          {
+            "value": "asc",
+            "label": "A → Z"
+          },
+          {
+            "value": "desc",
+            "label": "Z → A"
+          },
+          {
+            "value": "numeric",
+            "label": "Numeric"
+          },
+          {
+            "value": "natural",
+            "label": "Natural (a2 < a10)"
+          }
+        ]
+      },
+      {
+        "id": "caseInsensitive",
+        "label": "Case insensitive",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "unique-lines",
+    "name": "Unique Lines / Remove Duplicates",
+    "description": "Remove duplicate lines from text",
+    "section": "text",
+    "aliases": ["dedupe", "distinct", "remove-duplicates"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "preserveOrder",
+        "label": "Preserve original order",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "caseInsensitive",
+        "label": "Case insensitive",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "filter-lines",
+    "name": "Filter Lines",
+    "description": "Keep or remove lines matching a pattern",
+    "section": "text",
+    "aliases": ["grep", "search-lines"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "pattern",
+        "label": "Pattern",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "isRegex",
+        "label": "Use regex",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "keep",
+        "options": [
+          {
+            "value": "keep",
+            "label": "Keep matching"
+          },
+          {
+            "value": "remove",
+            "label": "Remove matching"
+          }
+        ]
+      },
+      {
+        "id": "caseInsensitive",
+        "label": "Case insensitive",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "prefix-suffix",
+    "name": "Prefix / Suffix Lines",
+    "description": "Add prefix or suffix to each line",
+    "section": "text",
+    "aliases": ["prepend", "append", "wrap-lines"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "prefix",
+        "label": "Prefix",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "suffix",
+        "label": "Suffix",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "skipEmpty",
+        "label": "Skip empty lines",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  },
+  {
+    "slug": "join-split",
+    "name": "Join / Split by Delimiter",
+    "description": "Join lines into one or split by delimiter",
+    "section": "text",
+    "aliases": ["split", "join", "delimiter"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "join",
+        "options": [
+          {
+            "value": "join",
+            "label": "Join lines"
+          },
+          {
+            "value": "split",
+            "label": "Split by delimiter"
+          }
+        ]
+      },
+      {
+        "id": "delimiter",
+        "label": "Delimiter",
+        "type": "text",
+        "default": ", "
+      }
+    ]
+  },
+  {
+    "slug": "text-stats",
+    "name": "Text Statistics",
+    "description": "Count characters, words, lines, and more",
+    "section": "text",
+    "aliases": ["word-count", "char-count", "line-count"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "regex-replace",
+    "name": "Find & Replace (Regex)",
+    "description": "Find and replace with regular expression support",
+    "section": "text",
+    "aliases": ["regex", "find-replace", "search-replace"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "find",
+        "label": "Find pattern",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "replace",
+        "label": "Replace with",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "isRegex",
+        "label": "Use regex",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "caseInsensitive",
+        "label": "Case insensitive",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "global",
+        "label": "Replace all",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  },
+  {
+    "slug": "regex-extract",
+    "name": "Extract Regex Groups",
+    "description": "Extract captured groups from regex matches",
+    "section": "text",
+    "aliases": ["regex-groups", "capture-groups"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "pattern",
+        "label": "Regex pattern",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "showGroups",
+        "label": "Show groups",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  },
+  {
+    "slug": "reverse-text",
+    "name": "Reverse Text",
+    "description": "Reverse characters, words, or lines",
+    "section": "text",
+    "aliases": ["mirror", "flip"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Reverse",
+        "type": "select",
+        "default": "chars",
+        "options": [
+          {
+            "value": "chars",
+            "label": "Characters"
+          },
+          {
+            "value": "words",
+            "label": "Words"
+          },
+          {
+            "value": "lines",
+            "label": "Lines"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "json-format",
+    "name": "JSON Formatter / Minifier",
+    "description": "Pretty print or minify JSON with options",
+    "section": "formats",
+    "aliases": ["json-pretty", "json-beautify", "json-minify"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "format",
+        "options": [
+          {
+            "value": "format",
+            "label": "Format (pretty)"
+          },
+          {
+            "value": "minify",
+            "label": "Minify"
+          }
+        ]
+      },
+      {
+        "id": "indent",
+        "label": "Indent spaces",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      },
+      {
+        "id": "sortKeys",
+        "label": "Sort keys",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "json-validate",
+    "name": "JSON Validator",
+    "description": "Validate JSON and show error location",
+    "section": "formats",
+    "aliases": ["json-lint", "json-check"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "json-sort-keys",
+    "name": "JSON Key Sorter",
+    "description": "Sort all keys in JSON alphabetically (stable for diffs)",
+    "section": "formats",
+    "aliases": ["sort-json", "stable-json"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "indent",
+        "label": "Indent spaces",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ]
+  },
+  {
+    "slug": "json-path",
+    "name": "JSON Path Tester",
+    "description": "Evaluate JSONPath expressions on JSON data",
+    "section": "formats",
+    "aliases": ["jsonpath", "jq"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "path",
+        "label": "Path (e.g. .users[0].name)",
+        "type": "text",
+        "default": ""
+      }
+    ]
+  },
+  {
+    "slug": "yaml-json",
+    "name": "YAML ↔ JSON",
+    "description": "Convert between YAML and JSON",
+    "section": "formats",
+    "aliases": ["yaml", "yml"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "yamlToJson",
+        "options": [
+          {
+            "value": "yamlToJson",
+            "label": "YAML → JSON"
+          },
+          {
+            "value": "jsonToYaml",
+            "label": "JSON → YAML"
+          }
+        ]
+      },
+      {
+        "id": "indent",
+        "label": "Indent",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ],
+    "allowSwap": true
+  },
+  {
+    "slug": "xml-format",
+    "name": "XML Formatter / Minifier",
+    "description": "Pretty print or minify XML",
+    "section": "formats",
+    "aliases": ["xml-pretty", "xml-beautify"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "format",
+        "options": [
+          {
+            "value": "format",
+            "label": "Format"
+          },
+          {
+            "value": "minify",
+            "label": "Minify"
+          }
+        ]
+      },
+      {
+        "id": "indent",
+        "label": "Indent spaces",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ]
+  },
+  {
+    "slug": "xml-json",
+    "name": "XML ↔ JSON (Simple)",
+    "description": "Convert between XML and JSON (basic conversion)",
+    "section": "formats",
+    "aliases": ["xml-to-json", "json-to-xml"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "xmlToJson",
+        "options": [
+          {
+            "value": "xmlToJson",
+            "label": "XML → JSON"
+          },
+          {
+            "value": "jsonToXml",
+            "label": "JSON → XML"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "csv-viewer",
+    "name": "CSV / TSV Viewer",
+    "description": "Parse and display CSV/TSV as a table",
+    "section": "formats",
+    "aliases": ["csv", "tsv", "spreadsheet"],
+    "inputType": "text",
+    "outputType": "table",
+    "options": [
+      {
+        "id": "delimiter",
+        "label": "Delimiter",
+        "type": "select",
+        "default": ",",
+        "options": [
+          {
+            "value": ",",
+            "label": "Comma (,)"
+          },
+          {
+            "value": "\t",
+            "label": "Tab"
+          },
+          {
+            "value": ";",
+            "label": "Semicolon (;)"
+          },
+          {
+            "value": "|",
+            "label": "Pipe (|)"
+          }
+        ]
+      },
+      {
+        "id": "hasHeader",
+        "label": "First row is header",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  },
+  {
+    "slug": "csv-json",
+    "name": "CSV ↔ JSON",
+    "description": "Convert between CSV and JSON array",
+    "section": "formats",
+    "aliases": ["csv-to-json", "json-to-csv"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "csvToJson",
+        "options": [
+          {
+            "value": "csvToJson",
+            "label": "CSV → JSON"
+          },
+          {
+            "value": "jsonToCsv",
+            "label": "JSON → CSV"
+          }
+        ]
+      },
+      {
+        "id": "delimiter",
+        "label": "Delimiter",
+        "type": "select",
+        "default": ",",
+        "options": [
+          {
+            "value": ",",
+            "label": "Comma"
+          },
+          {
+            "value": "\t",
+            "label": "Tab"
+          },
+          {
+            "value": ";",
+            "label": "Semicolon"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "delimiter-detect",
+    "name": "Delimiter Detector",
+    "description": "Detect CSV delimiter (comma, tab, semicolon, pipe)",
+    "section": "formats",
+    "aliases": ["csv-detect", "separator-detect"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "ndjson-tools",
+    "name": "NDJSON Tools",
+    "description": "Parse, validate, and convert NDJSON (newline-delimited JSON)",
+    "section": "formats",
+    "aliases": ["jsonl", "json-lines", "newline-json"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "validate",
+        "options": [
+          {
+            "value": "validate",
+            "label": "Validate"
+          },
+          {
+            "value": "toArray",
+            "label": "NDJSON → JSON Array"
+          },
+          {
+            "value": "toNdjson",
+            "label": "JSON Array → NDJSON"
+          },
+          {
+            "value": "pretty",
+            "label": "Pretty print each line"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "env-parser",
+    "name": ".env Parser",
+    "description": "Parse .env files to JSON and back",
+    "section": "formats",
+    "aliases": ["dotenv", "environment-variables"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "toJson",
+        "options": [
+          {
+            "value": "toJson",
+            "label": ".env → JSON"
+          },
+          {
+            "value": "toEnv",
+            "label": "JSON → .env"
+          }
+        ]
+      },
+      {
+        "id": "maskSecrets",
+        "label": "Mask secrets",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "toml-json",
+    "name": "TOML ↔ JSON",
+    "description": "Convert between TOML and JSON (basic)",
+    "section": "formats",
+    "aliases": ["toml"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "tomlToJson",
+        "options": [
+          {
+            "value": "tomlToJson",
+            "label": "TOML → JSON"
+          },
+          {
+            "value": "jsonToToml",
+            "label": "JSON → TOML"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "markdown-table",
+    "name": "Markdown Table Generator",
+    "description": "Generate Markdown tables from JSON or CSV",
+    "section": "formats",
+    "aliases": ["md-table", "table-markdown"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "input",
+        "label": "Input format",
+        "type": "select",
+        "default": "json",
+        "options": [
+          {
+            "value": "json",
+            "label": "JSON Array"
+          },
+          {
+            "value": "csv",
+            "label": "CSV"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "text-diff",
+    "name": "Text Diff",
+    "description": "Compare two texts and show differences",
+    "section": "diff",
+    "aliases": ["compare", "diff", "changes"],
+    "inputType": "dual",
+    "outputType": "diff",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Diff mode",
+        "type": "select",
+        "default": "lines",
+        "options": [
+          {
+            "value": "lines",
+            "label": "Line by line"
+          },
+          {
+            "value": "words",
+            "label": "Word by word"
+          },
+          {
+            "value": "chars",
+            "label": "Character by character"
+          }
+        ]
+      },
+      {
+        "id": "ignoreWhitespace",
+        "label": "Ignore whitespace",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "ignoreCase",
+        "label": "Ignore case",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "unified-diff",
+    "name": "Unified Diff Generator",
+    "description": "Generate unified diff (patch format)",
+    "section": "diff",
+    "aliases": ["patch", "git-diff"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "filename1",
+        "label": "File 1 name",
+        "type": "text",
+        "default": "original.txt"
+      },
+      {
+        "id": "filename2",
+        "label": "File 2 name",
+        "type": "text",
+        "default": "modified.txt"
+      },
+      {
+        "id": "context",
+        "label": "Context lines",
+        "type": "number",
+        "default": 3,
+        "min": 0,
+        "max": 10
+      }
+    ],
+    "inputPlaceholder": "Enter text 1 here...\n---SEPARATOR---\nEnter text 2 here..."
+  },
+  {
+    "slug": "json-diff",
+    "name": "JSON Diff (Structural)",
+    "description": "Compare JSON objects structurally with path changes",
+    "section": "diff",
+    "aliases": ["compare-json", "json-compare"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "sortKeys",
+        "label": "Sort keys first",
+        "type": "toggle",
+        "default": true
+      }
+    ],
+    "inputPlaceholder": "{\"key\": \"value1\"}\n---SEPARATOR---\n{\"key\": \"value2\"}"
+  },
+  {
+    "slug": "yaml-diff",
+    "name": "YAML Diff",
+    "description": "Compare YAML documents (converted to JSON internally)",
+    "section": "diff",
+    "aliases": ["compare-yaml"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "key: value1\n---SEPARATOR---\nkey: value2"
+  },
+  {
+    "slug": "csv-diff",
+    "name": "CSV Diff",
+    "description": "Compare CSV files row by row",
+    "section": "diff",
+    "aliases": ["compare-csv"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "keyColumn",
+        "label": "Key column (0-based)",
+        "type": "number",
+        "default": 0,
+        "min": 0
+      },
+      {
+        "id": "delimiter",
+        "label": "Delimiter",
+        "type": "select",
+        "default": ",",
+        "options": [
+          {
+            "value": ",",
+            "label": "Comma"
+          },
+          {
+            "value": "\t",
+            "label": "Tab"
+          },
+          {
+            "value": ";",
+            "label": "Semicolon"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "id,name\n1,Alice\n---SEPARATOR---\nid,name\n1,Bob"
+  },
+  {
+    "slug": "string-similarity",
+    "name": "String Similarity",
+    "description": "Calculate Levenshtein distance and similarity percentage",
+    "section": "diff",
+    "aliases": ["levenshtein", "edit-distance", "fuzzy-match"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "string1\n---SEPARATOR---\nstring2"
+  },
+  {
+    "slug": "hash-compare",
+    "name": "Hash Compare",
+    "description": "Compare two hash values for equality",
+    "section": "diff",
+    "aliases": ["checksum-compare", "verify-hash"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "ignoreCase",
+        "label": "Ignore case",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "ignoreSpaces",
+        "label": "Ignore spaces",
+        "type": "toggle",
+        "default": true
+      }
+    ],
+    "inputPlaceholder": "hash1\n---SEPARATOR---\nhash2"
+  },
+  {
+    "slug": "array-diff",
+    "name": "Array / List Diff",
+    "description": "Find added, removed, and common items between two lists",
+    "section": "diff",
+    "aliases": ["list-compare", "set-diff"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "ignoreCase",
+        "label": "Ignore case",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "trimLines",
+        "label": "Trim lines",
+        "type": "toggle",
+        "default": true
+      }
+    ],
+    "inputPlaceholder": "item1\nitem2\nitem3\n---SEPARATOR---\nitem2\nitem3\nitem4"
+  },
+  {
+    "slug": "hash-text",
+    "name": "Hash Generator (Text)",
+    "description": "Generate MD5, SHA-1, SHA-256, SHA-384, SHA-512 hashes",
+    "section": "crypto",
+    "aliases": ["sha256", "sha512", "md5", "checksum"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "algorithm",
+        "label": "Algorithm",
+        "type": "select",
+        "default": "SHA-256",
+        "options": [
+          {
+            "value": "MD5",
+            "label": "MD5"
+          },
+          {
+            "value": "SHA-1",
+            "label": "SHA-1"
+          },
+          {
+            "value": "SHA-256",
+            "label": "SHA-256"
+          },
+          {
+            "value": "SHA-384",
+            "label": "SHA-384"
+          },
+          {
+            "value": "SHA-512",
+            "label": "SHA-512"
+          }
+        ]
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "hash-file",
+    "name": "File Hash Generator",
+    "description": "Generate hash checksums for files",
+    "section": "crypto",
+    "aliases": ["file-checksum", "file-sha256"],
+    "inputType": "file",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "algorithm",
+        "label": "Algorithm",
+        "type": "select",
+        "default": "SHA-256",
+        "options": [
+          {
+            "value": "SHA-1",
+            "label": "SHA-1"
+          },
+          {
+            "value": "SHA-256",
+            "label": "SHA-256"
+          },
+          {
+            "value": "SHA-384",
+            "label": "SHA-384"
+          },
+          {
+            "value": "SHA-512",
+            "label": "SHA-512"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "hmac",
+    "name": "HMAC Generator",
+    "description": "Generate HMAC signatures using various algorithms",
+    "section": "crypto",
+    "aliases": ["hmac-sha256", "message-auth"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "secret",
+        "label": "Secret key",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "algorithm",
+        "label": "Algorithm",
+        "type": "select",
+        "default": "SHA-256",
+        "options": [
+          {
+            "value": "SHA-1",
+            "label": "HMAC-SHA-1"
+          },
+          {
+            "value": "SHA-256",
+            "label": "HMAC-SHA-256"
+          },
+          {
+            "value": "SHA-384",
+            "label": "HMAC-SHA-384"
+          },
+          {
+            "value": "SHA-512",
+            "label": "HMAC-SHA-512"
+          }
+        ]
+      },
+      {
+        "id": "output",
+        "label": "Output",
+        "type": "select",
+        "default": "hex",
+        "options": [
+          {
+            "value": "hex",
+            "label": "Hex"
+          },
+          {
+            "value": "base64",
+            "label": "Base64"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "pbkdf2",
+    "name": "PBKDF2 Derivation",
+    "description": "Derive keys using PBKDF2",
+    "section": "crypto",
+    "aliases": ["key-derivation", "password-hash"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "salt",
+        "label": "Salt",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "iterations",
+        "label": "Iterations",
+        "type": "number",
+        "default": 100000,
+        "min": 1000,
+        "max": 1000000
+      },
+      {
+        "id": "keyLength",
+        "label": "Key length (bytes)",
+        "type": "number",
+        "default": 32,
+        "min": 16,
+        "max": 64
+      },
+      {
+        "id": "algorithm",
+        "label": "Algorithm",
+        "type": "select",
+        "default": "SHA-256",
+        "options": [
+          {
+            "value": "SHA-1",
+            "label": "SHA-1"
+          },
+          {
+            "value": "SHA-256",
+            "label": "SHA-256"
+          },
+          {
+            "value": "SHA-512",
+            "label": "SHA-512"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter password..."
+  },
+  {
+    "slug": "jwt-decode",
+    "name": "JWT Decoder",
+    "description": "Decode JWT tokens and show header, payload, and expiration",
+    "section": "crypto",
+    "aliases": ["jwt", "json-web-token"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Paste JWT token here..."
+  },
+  {
+    "slug": "jwt-expired",
+    "name": "JWT Expiration Checker",
+    "description": "Check if a JWT is expired and show remaining time",
+    "section": "crypto",
+    "aliases": ["jwt-check", "token-expiry"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "random-bytes",
+    "name": "Random Bytes Generator",
+    "description": "Generate cryptographically secure random bytes",
+    "section": "crypto",
+    "aliases": ["random", "secure-random"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "length",
+        "label": "Length (bytes)",
+        "type": "number",
+        "default": 32,
+        "min": 1,
+        "max": 1024
+      },
+      {
+        "id": "format",
+        "label": "Format",
+        "type": "select",
+        "default": "hex",
+        "options": [
+          {
+            "value": "hex",
+            "label": "Hex"
+          },
+          {
+            "value": "base64",
+            "label": "Base64"
+          },
+          {
+            "value": "base64url",
+            "label": "Base64URL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "password-generator",
+    "name": "Password Generator",
+    "description": "Generate secure random passwords",
+    "section": "crypto",
+    "aliases": ["passgen", "secure-password"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "length",
+        "label": "Length",
+        "type": "number",
+        "default": 16,
+        "min": 4,
+        "max": 128
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase (A-Z)",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "lowercase",
+        "label": "Lowercase (a-z)",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "numbers",
+        "label": "Numbers (0-9)",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "symbols",
+        "label": "Symbols (!@#$...)",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "avoidAmbiguous",
+        "label": "Avoid ambiguous (0O1lI)",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "count",
+        "label": "Generate count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 10
+      }
+    ]
+  },
+  {
+    "slug": "aes-encrypt",
+    "name": "AES-GCM Encrypt / Decrypt",
+    "description": "Encrypt or decrypt text using AES-GCM",
+    "section": "crypto",
+    "aliases": ["aes", "encrypt", "decrypt"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "encrypt",
+        "options": [
+          {
+            "value": "encrypt",
+            "label": "Encrypt"
+          },
+          {
+            "value": "decrypt",
+            "label": "Decrypt"
+          }
+        ]
+      },
+      {
+        "id": "password",
+        "label": "Password",
+        "type": "text",
+        "default": ""
+      }
+    ]
+  },
+  {
+    "slug": "bcrypt-verify",
+    "name": "Bcrypt Info",
+    "description": "Analyze bcrypt hash structure (cannot generate without backend)",
+    "section": "crypto",
+    "aliases": ["bcrypt"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Paste bcrypt hash (e.g., $2b$10$...)"
+  },
+  {
+    "slug": "crc32",
+    "name": "CRC32 Checksum",
+    "description": "Calculate CRC32 checksum",
+    "section": "crypto",
+    "aliases": ["crc", "checksum"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "uuid-generator",
+    "name": "UUID v4 Generator",
+    "description": "Generate random UUID v4 identifiers",
+    "section": "ids",
+    "aliases": ["uuid", "guid", "uuid4"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 100
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "noDashes",
+        "label": "No dashes",
+        "type": "toggle",
+        "default": false
+      },
+      {
+        "id": "braces",
+        "label": "With braces {}",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "ulid-generator",
+    "name": "ULID Generator",
+    "description": "Generate sortable ULID identifiers",
+    "section": "ids",
+    "aliases": ["ulid", "sortable-id"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 100
+      },
+      {
+        "id": "lowercase",
+        "label": "Lowercase",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "nanoid-generator",
+    "name": "NanoID Generator",
+    "description": "Generate compact NanoID identifiers",
+    "section": "ids",
+    "aliases": ["nanoid", "short-id"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 100
+      },
+      {
+        "id": "length",
+        "label": "Length",
+        "type": "number",
+        "default": 21,
+        "min": 2,
+        "max": 64
+      },
+      {
+        "id": "alphabet",
+        "label": "Alphabet",
+        "type": "select",
+        "default": "default",
+        "options": [
+          {
+            "value": "default",
+            "label": "Default (A-Za-z0-9_-)"
+          },
+          {
+            "value": "alphanumeric",
+            "label": "Alphanumeric (A-Za-z0-9)"
+          },
+          {
+            "value": "lowercase",
+            "label": "Lowercase (a-z0-9)"
+          },
+          {
+            "value": "numbers",
+            "label": "Numbers only (0-9)"
+          },
+          {
+            "value": "hex",
+            "label": "Hex (0-9a-f)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "guid-formatter",
+    "name": "GUID Formatter",
+    "description": "Format GUID/UUID with different styles",
+    "section": "ids",
+    "aliases": ["format-uuid", "format-guid"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "format",
+        "label": "Format",
+        "type": "select",
+        "default": "standard",
+        "options": [
+          {
+            "value": "standard",
+            "label": "Standard (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+          },
+          {
+            "value": "noDashes",
+            "label": "No dashes (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)"
+          },
+          {
+            "value": "braces",
+            "label": "Braces ({xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx})"
+          },
+          {
+            "value": "urn",
+            "label": "URN (urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
+          }
+        ]
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase",
+        "type": "toggle",
+        "default": false
+      }
+    ],
+    "inputPlaceholder": "Enter UUID/GUID..."
+  },
+  {
+    "slug": "ulid-inspector",
+    "name": "ULID / Timestamp ID Inspector",
+    "description": "Extract timestamp from ULID or other timestamp-based IDs",
+    "section": "ids",
+    "aliases": ["parse-ulid", "ulid-time"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter ULID..."
+  },
+  {
+    "slug": "slug-id",
+    "name": "Slug ID Generator",
+    "description": "Generate human-readable short IDs (adjective-noun-1234)",
+    "section": "ids",
+    "aliases": ["human-id", "readable-id", "memorable-id"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 20
+      },
+      {
+        "id": "separator",
+        "label": "Separator",
+        "type": "text",
+        "default": "-"
+      },
+      {
+        "id": "numbers",
+        "label": "Include numbers",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "numDigits",
+        "label": "Number digits",
+        "type": "number",
+        "default": 4,
+        "min": 2,
+        "max": 6
+      }
+    ]
+  },
+  {
+    "slug": "epoch-converter",
+    "name": "Unix Epoch Converter",
+    "description": "Convert between Unix timestamps and human-readable dates",
+    "section": "datetime",
+    "aliases": ["timestamp", "unix-time", "epoch"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Auto-detect"
+          },
+          {
+            "value": "toDate",
+            "label": "Timestamp → Date"
+          },
+          {
+            "value": "toTimestamp",
+            "label": "Date → Timestamp"
+          }
+        ]
+      },
+      {
+        "id": "unit",
+        "label": "Timestamp unit",
+        "type": "select",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Auto-detect"
+          },
+          {
+            "value": "seconds",
+            "label": "Seconds"
+          },
+          {
+            "value": "milliseconds",
+            "label": "Milliseconds"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter timestamp or date..."
+  },
+  {
+    "slug": "iso-parser",
+    "name": "ISO 8601 Parser",
+    "description": "Parse and analyze ISO 8601 date strings",
+    "section": "datetime",
+    "aliases": ["parse-date", "date-parser"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter ISO 8601 date (e.g., 2024-01-15T10:30:00Z)..."
+  },
+  {
+    "slug": "relative-time",
+    "name": "Relative Time",
+    "description": "Show relative time (e.g., \"3 hours ago\", \"in 2 days\")",
+    "section": "datetime",
+    "aliases": ["time-ago", "from-now"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter date or timestamp..."
+  },
+  {
+    "slug": "add-duration",
+    "name": "Add / Subtract Duration",
+    "description": "Add or subtract time from a date",
+    "section": "datetime",
+    "aliases": ["date-math", "add-time"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "days",
+        "label": "Days",
+        "type": "number",
+        "default": 0,
+        "min": -9999,
+        "max": 9999
+      },
+      {
+        "id": "hours",
+        "label": "Hours",
+        "type": "number",
+        "default": 0,
+        "min": -9999,
+        "max": 9999
+      },
+      {
+        "id": "minutes",
+        "label": "Minutes",
+        "type": "number",
+        "default": 0,
+        "min": -9999,
+        "max": 9999
+      },
+      {
+        "id": "seconds",
+        "label": "Seconds",
+        "type": "number",
+        "default": 0,
+        "min": -9999,
+        "max": 9999
+      }
+    ],
+    "inputPlaceholder": "Enter date (leave empty for now)..."
+  },
+  {
+    "slug": "timezone-converter",
+    "name": "Timezone Converter",
+    "description": "Convert times between different timezones",
+    "section": "datetime",
+    "aliases": ["tz", "timezone"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "from",
+        "label": "From timezone",
+        "type": "select",
+        "default": "local",
+        "options": [
+          {
+            "value": "local",
+            "label": "Local"
+          },
+          {
+            "value": "UTC",
+            "label": "UTC"
+          },
+          {
+            "value": "America/New_York",
+            "label": "New York (EST/EDT)"
+          },
+          {
+            "value": "America/Los_Angeles",
+            "label": "Los Angeles (PST/PDT)"
+          },
+          {
+            "value": "America/Chicago",
+            "label": "Chicago (CST/CDT)"
+          },
+          {
+            "value": "Europe/London",
+            "label": "London (GMT/BST)"
+          },
+          {
+            "value": "Europe/Paris",
+            "label": "Paris (CET/CEST)"
+          },
+          {
+            "value": "Europe/Berlin",
+            "label": "Berlin (CET/CEST)"
+          },
+          {
+            "value": "Asia/Tokyo",
+            "label": "Tokyo (JST)"
+          },
+          {
+            "value": "Asia/Shanghai",
+            "label": "Shanghai (CST)"
+          },
+          {
+            "value": "Asia/Kolkata",
+            "label": "India (IST)"
+          },
+          {
+            "value": "Asia/Dubai",
+            "label": "Dubai (GST)"
+          },
+          {
+            "value": "Australia/Sydney",
+            "label": "Sydney (AEST/AEDT)"
+          },
+          {
+            "value": "Pacific/Auckland",
+            "label": "Auckland (NZST/NZDT)"
+          }
+        ]
+      },
+      {
+        "id": "to",
+        "label": "To timezone",
+        "type": "select",
+        "default": "UTC",
+        "options": [
+          {
+            "value": "local",
+            "label": "Local"
+          },
+          {
+            "value": "UTC",
+            "label": "UTC"
+          },
+          {
+            "value": "America/New_York",
+            "label": "New York (EST/EDT)"
+          },
+          {
+            "value": "America/Los_Angeles",
+            "label": "Los Angeles (PST/PDT)"
+          },
+          {
+            "value": "America/Chicago",
+            "label": "Chicago (CST/CDT)"
+          },
+          {
+            "value": "Europe/London",
+            "label": "London (GMT/BST)"
+          },
+          {
+            "value": "Europe/Paris",
+            "label": "Paris (CET/CEST)"
+          },
+          {
+            "value": "Europe/Berlin",
+            "label": "Berlin (CET/CEST)"
+          },
+          {
+            "value": "Asia/Tokyo",
+            "label": "Tokyo (JST)"
+          },
+          {
+            "value": "Asia/Shanghai",
+            "label": "Shanghai (CST)"
+          },
+          {
+            "value": "Asia/Kolkata",
+            "label": "India (IST)"
+          },
+          {
+            "value": "Asia/Dubai",
+            "label": "Dubai (GST)"
+          },
+          {
+            "value": "Australia/Sydney",
+            "label": "Sydney (AEST/AEDT)"
+          },
+          {
+            "value": "Pacific/Auckland",
+            "label": "Auckland (NZST/NZDT)"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter date (leave empty for now)..."
+  },
+  {
+    "slug": "week-number",
+    "name": "Week Number Calculator",
+    "description": "Get ISO week number and day of week",
+    "section": "datetime",
+    "aliases": ["iso-week", "weekday"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter date (leave empty for today)..."
+  },
+  {
+    "slug": "date-diff",
+    "name": "Date Difference",
+    "description": "Calculate the difference between two dates",
+    "section": "datetime",
+    "aliases": ["days-between", "date-delta"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "date1\n---SEPARATOR---\ndate2"
+  },
+  {
+    "slug": "base-converter",
+    "name": "Base Converter",
+    "description": "Convert numbers between decimal, hex, binary, octal, base36, base62",
+    "section": "numbers",
+    "aliases": ["radix", "hex", "binary", "octal"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "fromBase",
+        "label": "From base",
+        "type": "select",
+        "default": "10",
+        "options": [
+          {
+            "value": "2",
+            "label": "Binary (2)"
+          },
+          {
+            "value": "8",
+            "label": "Octal (8)"
+          },
+          {
+            "value": "10",
+            "label": "Decimal (10)"
+          },
+          {
+            "value": "16",
+            "label": "Hexadecimal (16)"
+          },
+          {
+            "value": "36",
+            "label": "Base36"
+          },
+          {
+            "value": "62",
+            "label": "Base62"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "bitwise",
+    "name": "Bitwise Playground",
+    "description": "Visualize AND, OR, XOR, NOT, and SHIFT operations",
+    "section": "numbers",
+    "aliases": ["and", "or", "xor", "shift", "binary-ops"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "operation",
+        "label": "Operation",
+        "type": "select",
+        "default": "and",
+        "options": [
+          {
+            "value": "and",
+            "label": "AND (&)"
+          },
+          {
+            "value": "or",
+            "label": "OR (|)"
+          },
+          {
+            "value": "xor",
+            "label": "XOR (^)"
+          },
+          {
+            "value": "not",
+            "label": "NOT (~) - first number only"
+          },
+          {
+            "value": "lshift",
+            "label": "Left shift (<<)"
+          },
+          {
+            "value": "rshift",
+            "label": "Right shift (>>)"
+          }
+        ]
+      },
+      {
+        "id": "bits",
+        "label": "Bit width",
+        "type": "number",
+        "default": 32,
+        "min": 8,
+        "max": 64
+      }
+    ],
+    "inputPlaceholder": "Enter two numbers (one per line)..."
+  },
+  {
+    "slug": "ieee754",
+    "name": "IEEE 754 Float Decoder",
+    "description": "Decode floating point numbers to sign, exponent, and mantissa",
+    "section": "numbers",
+    "aliases": ["float", "double", "floating-point"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "precision",
+        "label": "Precision",
+        "type": "select",
+        "default": "single",
+        "options": [
+          {
+            "value": "single",
+            "label": "Single (32-bit)"
+          },
+          {
+            "value": "double",
+            "label": "Double (64-bit)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "endianness",
+    "name": "Endianness Converter",
+    "description": "Swap byte order (little-endian ↔ big-endian)",
+    "section": "numbers",
+    "aliases": ["byte-swap", "little-endian", "big-endian"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "size",
+        "label": "Word size",
+        "type": "select",
+        "default": "32",
+        "options": [
+          {
+            "value": "16",
+            "label": "16-bit"
+          },
+          {
+            "value": "32",
+            "label": "32-bit"
+          },
+          {
+            "value": "64",
+            "label": "64-bit"
+          }
+        ]
+      },
+      {
+        "id": "format",
+        "label": "Input format",
+        "type": "select",
+        "default": "hex",
+        "options": [
+          {
+            "value": "hex",
+            "label": "Hex"
+          },
+          {
+            "value": "decimal",
+            "label": "Decimal"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "humanize-bytes",
+    "name": "Humanize Bytes",
+    "description": "Convert between bytes and human-readable sizes (KB, MB, GB)",
+    "section": "numbers",
+    "aliases": ["bytes", "filesize", "kb", "mb", "gb"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Auto-detect"
+          },
+          {
+            "value": "toHuman",
+            "label": "Bytes → Human"
+          },
+          {
+            "value": "toBytes",
+            "label": "Human → Bytes"
+          }
+        ]
+      },
+      {
+        "id": "standard",
+        "label": "Standard",
+        "type": "select",
+        "default": "binary",
+        "options": [
+          {
+            "value": "binary",
+            "label": "Binary (KiB, MiB - 1024)"
+          },
+          {
+            "value": "decimal",
+            "label": "Decimal (KB, MB - 1000)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cidr-calculator",
+    "name": "CIDR / Subnet Calculator",
+    "description": "Calculate subnet mask, range, broadcast, and host count",
+    "section": "numbers",
+    "aliases": ["subnet", "ip-range", "netmask"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter CIDR (e.g., 192.168.1.0/24)..."
+  },
+  {
+    "slug": "ip-integer",
+    "name": "IP ↔ Integer",
+    "description": "Convert between IPv4 dotted quad and 32-bit integer",
+    "section": "numbers",
+    "aliases": ["ip-to-int", "int-to-ip"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "auto",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Auto-detect"
+          },
+          {
+            "value": "toInt",
+            "label": "IP → Integer"
+          },
+          {
+            "value": "toIp",
+            "label": "Integer → IP"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ipv6-format",
+    "name": "IPv6 Expand / Compress",
+    "description": "Expand or compress IPv6 addresses",
+    "section": "numbers",
+    "aliases": ["ipv6", "expand-ipv6", "compress-ipv6"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "expand",
+        "options": [
+          {
+            "value": "expand",
+            "label": "Expand (full form)"
+          },
+          {
+            "value": "compress",
+            "label": "Compress (short form)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "percentage",
+    "name": "Percentage Calculator",
+    "description": "Calculate percentages, percent change, and ratios",
+    "section": "numbers",
+    "aliases": ["percent", "ratio"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Calculation",
+        "type": "select",
+        "default": "of",
+        "options": [
+          {
+            "value": "of",
+            "label": "X% of Y"
+          },
+          {
+            "value": "is",
+            "label": "X is what % of Y"
+          },
+          {
+            "value": "change",
+            "label": "Percent change from X to Y"
+          },
+          {
+            "value": "increase",
+            "label": "Increase X by Y%"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter two numbers (one per line)..."
+  },
+  {
+    "slug": "http-status",
+    "name": "HTTP Status Code Lookup",
+    "description": "Look up HTTP status codes by number or keyword",
+    "section": "http",
+    "aliases": ["status-code", "404", "500", "200"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter status code or search keyword..."
+  },
+  {
+    "slug": "mime-type",
+    "name": "MIME Type ↔ Extension Lookup",
+    "description": "Look up MIME types by extension or vice versa",
+    "section": "http",
+    "aliases": ["content-type", "file-type"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter extension (.js) or MIME type (application/json)..."
+  },
+  {
+    "slug": "auth-header",
+    "name": "Authorization Header Builder",
+    "description": "Build Basic or Bearer authorization headers",
+    "section": "http",
+    "aliases": ["basic-auth", "bearer-token"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "type",
+        "label": "Type",
+        "type": "select",
+        "default": "basic",
+        "options": [
+          {
+            "value": "basic",
+            "label": "Basic (username:password)"
+          },
+          {
+            "value": "bearer",
+            "label": "Bearer Token"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "cookie-parser",
+    "name": "Cookie Parser / Builder",
+    "description": "Parse Set-Cookie headers or build Cookie headers",
+    "section": "http",
+    "aliases": ["set-cookie", "parse-cookie"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "parse",
+        "options": [
+          {
+            "value": "parse",
+            "label": "Parse Set-Cookie"
+          },
+          {
+            "value": "build",
+            "label": "Build Cookie header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "header-normalize",
+    "name": "Header Normalizer",
+    "description": "Normalize HTTP header casing and format",
+    "section": "http",
+    "aliases": ["http-headers", "normalize-headers"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "format",
+        "label": "Format",
+        "type": "select",
+        "default": "canonical",
+        "options": [
+          {
+            "value": "canonical",
+            "label": "Canonical (Content-Type)"
+          },
+          {
+            "value": "lowercase",
+            "label": "Lowercase (content-type)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "curl-generator",
+    "name": "Generate cURL",
+    "description": "Generate cURL command from request parameters",
+    "section": "http",
+    "aliases": ["curl", "request-to-curl"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "method",
+        "label": "Method",
+        "type": "select",
+        "default": "GET",
+        "options": [
+          {
+            "value": "GET",
+            "label": "GET"
+          },
+          {
+            "value": "POST",
+            "label": "POST"
+          },
+          {
+            "value": "PUT",
+            "label": "PUT"
+          },
+          {
+            "value": "PATCH",
+            "label": "PATCH"
+          },
+          {
+            "value": "DELETE",
+            "label": "DELETE"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter URL or JSON { url, method, headers, body }..."
+  },
+  {
+    "slug": "curl-parser",
+    "name": "Parse cURL",
+    "description": "Parse cURL command into request components",
+    "section": "http",
+    "aliases": ["curl-to-request"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Paste cURL command..."
+  },
+  {
+    "slug": "request-snippet",
+    "name": "Request Snippet Generator",
+    "description": "Generate request code in fetch, axios, or Python requests",
+    "section": "http",
+    "aliases": ["fetch", "axios", "python-requests"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "language",
+        "label": "Language",
+        "type": "select",
+        "default": "fetch",
+        "options": [
+          {
+            "value": "fetch",
+            "label": "JavaScript (fetch)"
+          },
+          {
+            "value": "axios",
+            "label": "JavaScript (axios)"
+          },
+          {
+            "value": "python",
+            "label": "Python (requests)"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter JSON { url, method, headers, body }..."
+  },
+  {
+    "slug": "form-urlencoded",
+    "name": "Form-urlencoded Builder",
+    "description": "Build application/x-www-form-urlencoded body",
+    "section": "http",
+    "aliases": ["form-data", "post-body"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Input format",
+        "type": "select",
+        "default": "json",
+        "options": [
+          {
+            "value": "json",
+            "label": "JSON"
+          },
+          {
+            "value": "lines",
+            "label": "Key=value lines"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter JSON object or key=value pairs..."
+  },
+  {
+    "slug": "image-compress",
+    "name": "Image Compressor",
+    "description": "Compress images with quality control",
+    "section": "images",
+    "aliases": ["compress", "optimize-image"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "options": [
+      {
+        "id": "quality",
+        "label": "Quality (%)",
+        "type": "number",
+        "default": 80,
+        "min": 1,
+        "max": 100
+      },
+      {
+        "id": "format",
+        "label": "Output format",
+        "type": "select",
+        "default": "jpeg",
+        "options": [
+          {
+            "value": "jpeg",
+            "label": "JPEG"
+          },
+          {
+            "value": "webp",
+            "label": "WebP"
+          },
+          {
+            "value": "png",
+            "label": "PNG"
+          }
+        ]
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "image-resize",
+    "name": "Image Resizer",
+    "description": "Resize images to specific dimensions",
+    "section": "images",
+    "aliases": ["resize", "scale-image"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "options": [
+      {
+        "id": "width",
+        "label": "Width (px)",
+        "type": "number",
+        "default": 800,
+        "min": 1,
+        "max": 10000
+      },
+      {
+        "id": "height",
+        "label": "Height (px)",
+        "type": "number",
+        "default": 600,
+        "min": 1,
+        "max": 10000
+      },
+      {
+        "id": "keepAspect",
+        "label": "Keep aspect ratio",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "format",
+        "label": "Output format",
+        "type": "select",
+        "default": "png",
+        "options": [
+          {
+            "value": "png",
+            "label": "PNG"
+          },
+          {
+            "value": "jpeg",
+            "label": "JPEG"
+          },
+          {
+            "value": "webp",
+            "label": "WebP"
+          }
+        ]
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "image-convert",
+    "name": "Image Format Converter",
+    "description": "Convert between PNG, JPEG, and WebP",
+    "section": "images",
+    "aliases": ["png-to-jpg", "jpg-to-png", "webp"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "options": [
+      {
+        "id": "format",
+        "label": "Output format",
+        "type": "select",
+        "default": "webp",
+        "options": [
+          {
+            "value": "png",
+            "label": "PNG"
+          },
+          {
+            "value": "jpeg",
+            "label": "JPEG"
+          },
+          {
+            "value": "webp",
+            "label": "WebP"
+          }
+        ]
+      },
+      {
+        "id": "quality",
+        "label": "Quality (%)",
+        "type": "number",
+        "default": 90,
+        "min": 1,
+        "max": 100
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "image-crop",
+    "name": "Image Cropper",
+    "description": "Crop images to specific dimensions",
+    "section": "images",
+    "aliases": ["crop"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "options": [
+      {
+        "id": "x",
+        "label": "X offset",
+        "type": "number",
+        "default": 0,
+        "min": 0
+      },
+      {
+        "id": "y",
+        "label": "Y offset",
+        "type": "number",
+        "default": 0,
+        "min": 0
+      },
+      {
+        "id": "width",
+        "label": "Width",
+        "type": "number",
+        "default": 100,
+        "min": 1
+      },
+      {
+        "id": "height",
+        "label": "Height",
+        "type": "number",
+        "default": 100,
+        "min": 1
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "image-rotate",
+    "name": "Image Rotator / Flipper",
+    "description": "Rotate or flip images",
+    "section": "images",
+    "aliases": ["rotate", "flip", "mirror"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "options": [
+      {
+        "id": "operation",
+        "label": "Operation",
+        "type": "select",
+        "default": "90",
+        "options": [
+          {
+            "value": "90",
+            "label": "Rotate 90° clockwise"
+          },
+          {
+            "value": "180",
+            "label": "Rotate 180°"
+          },
+          {
+            "value": "270",
+            "label": "Rotate 90° counter-clockwise"
+          },
+          {
+            "value": "flipH",
+            "label": "Flip horizontal"
+          },
+          {
+            "value": "flipV",
+            "label": "Flip vertical"
+          }
+        ]
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "color-picker",
+    "name": "Color Picker from Image",
+    "description": "Click on an image to sample pixel colors",
+    "section": "images",
+    "aliases": ["eyedropper", "pick-color"],
+    "inputType": "file",
+    "outputType": "preview",
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "palette-extractor",
+    "name": "Palette Extractor",
+    "description": "Extract dominant colors from an image",
+    "section": "images",
+    "aliases": ["extract-colors", "dominant-colors"],
+    "inputType": "file",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "colors",
+        "label": "Number of colors",
+        "type": "number",
+        "default": 5,
+        "min": 2,
+        "max": 20
+      }
+    ],
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "qr-generator",
+    "name": "QR Code Generator",
+    "description": "Generate QR codes from text or URLs",
+    "section": "images",
+    "aliases": ["qrcode", "qr"],
+    "inputType": "text",
+    "outputType": "image",
+    "options": [
+      {
+        "id": "size",
+        "label": "Size (px)",
+        "type": "number",
+        "default": 256,
+        "min": 64,
+        "max": 1024
+      },
+      {
+        "id": "errorCorrection",
+        "label": "Error correction",
+        "type": "select",
+        "default": "M",
+        "options": [
+          {
+            "value": "L",
+            "label": "Low (7%)"
+          },
+          {
+            "value": "M",
+            "label": "Medium (15%)"
+          },
+          {
+            "value": "Q",
+            "label": "Quartile (25%)"
+          },
+          {
+            "value": "H",
+            "label": "High (30%)"
+          }
+        ]
+      }
+    ],
+    "inputPlaceholder": "Enter text or URL..."
+  },
+  {
+    "slug": "qr-reader",
+    "name": "QR Code Reader",
+    "description": "Read QR codes from images",
+    "section": "images",
+    "aliases": ["decode-qr", "scan-qr"],
+    "inputType": "file",
+    "outputType": "text",
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "favicon-generator",
+    "name": "Favicon Generator",
+    "description": "Generate favicon.ico and various sizes from an image",
+    "section": "images",
+    "aliases": ["ico", "favicon"],
+    "inputType": "file",
+    "outputType": "download",
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "image-metadata",
+    "name": "Image Metadata Viewer",
+    "description": "View basic image metadata (dimensions, size, type)",
+    "section": "images",
+    "aliases": ["exif", "image-info"],
+    "inputType": "file",
+    "outputType": "text",
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "strip-metadata",
+    "name": "Strip Image Metadata",
+    "description": "Remove EXIF and other metadata from images",
+    "section": "images",
+    "aliases": ["remove-exif", "clean-image"],
+    "inputType": "file",
+    "outputType": "image-result",
+    "fileAccept": "image/*"
+  },
+  {
+    "slug": "color-converter",
+    "name": "Color Converter",
+    "description": "Convert between HEX, RGB, HSL, and HSV",
+    "section": "colors",
+    "aliases": ["hex", "rgb", "hsl", "hsv", "color"],
+    "inputType": "text",
+    "outputType": "color",
+    "inputPlaceholder": "Enter color (#fff, rgb(255,255,255), hsl(0,0%,100%))..."
+  },
+  {
+    "slug": "contrast-checker",
+    "name": "Contrast Checker (WCAG)",
+    "description": "Check color contrast ratio for accessibility",
+    "section": "colors",
+    "aliases": ["wcag", "accessibility", "a11y"],
+    "inputType": "text",
+    "outputType": "color",
+    "inputPlaceholder": "#000000\n#ffffff"
+  },
+  {
+    "slug": "css-variables",
+    "name": "Generate CSS Variables",
+    "description": "Generate CSS custom properties from a color palette",
+    "section": "colors",
+    "aliases": ["css-vars", "palette-css"],
+    "inputType": "text",
+    "outputType": "text",
+    "inputPlaceholder": "Enter colors (one per line):\n#3b82f6 primary\n#10b981 success"
+  },
+  {
+    "slug": "gradient-generator",
+    "name": "Gradient Generator",
+    "description": "Generate CSS linear and radial gradients",
+    "section": "colors",
+    "aliases": ["linear-gradient", "radial-gradient"],
+    "inputType": "text",
+    "outputType": "color",
+    "options": [
+      {
+        "id": "type",
+        "label": "Type",
+        "type": "select",
+        "default": "linear",
+        "options": [
+          {
+            "value": "linear",
+            "label": "Linear"
+          },
+          {
+            "value": "radial",
+            "label": "Radial"
+          }
+        ]
+      },
+      {
+        "id": "angle",
+        "label": "Angle (deg)",
+        "type": "number",
+        "default": 90,
+        "min": 0,
+        "max": 360
+      }
+    ],
+    "inputPlaceholder": "Enter colors (one per line):\n#3b82f6\n#8b5cf6"
+  },
+  {
+    "slug": "box-shadow",
+    "name": "Box Shadow Generator",
+    "description": "Generate CSS box-shadow with visual preview",
+    "section": "colors",
+    "aliases": ["shadow", "css-shadow"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "x",
+        "label": "X offset",
+        "type": "number",
+        "default": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "id": "y",
+        "label": "Y offset",
+        "type": "number",
+        "default": 4,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "id": "blur",
+        "label": "Blur",
+        "type": "number",
+        "default": 6,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "spread",
+        "label": "Spread",
+        "type": "number",
+        "default": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "id": "color",
+        "label": "Color",
+        "type": "text",
+        "default": "rgba(0, 0, 0, 0.1)"
+      },
+      {
+        "id": "inset",
+        "label": "Inset",
+        "type": "toggle",
+        "default": false
+      }
+    ]
+  },
+  {
+    "slug": "border-radius",
+    "name": "Border Radius Generator",
+    "description": "Generate CSS border-radius with per-corner control",
+    "section": "colors",
+    "aliases": ["rounded", "corners"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "topLeft",
+        "label": "Top Left",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "topRight",
+        "label": "Top Right",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "bottomRight",
+        "label": "Bottom Right",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "bottomLeft",
+        "label": "Bottom Left",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "unit",
+        "label": "Unit",
+        "type": "select",
+        "default": "px",
+        "options": [
+          {
+            "value": "px",
+            "label": "px"
+          },
+          {
+            "value": "%",
+            "label": "%"
+          },
+          {
+            "value": "rem",
+            "label": "rem"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "clamp-calculator",
+    "name": "CSS Clamp Calculator",
+    "description": "Generate fluid typography with clamp()",
+    "section": "colors",
+    "aliases": ["fluid-type", "responsive-font"],
+    "inputType": "none",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "minSize",
+        "label": "Min size (rem)",
+        "type": "number",
+        "default": 1,
+        "min": 0.5,
+        "max": 10,
+        "step": 0.125
+      },
+      {
+        "id": "maxSize",
+        "label": "Max size (rem)",
+        "type": "number",
+        "default": 2,
+        "min": 0.5,
+        "max": 10,
+        "step": 0.125
+      },
+      {
+        "id": "minVw",
+        "label": "Min viewport (px)",
+        "type": "number",
+        "default": 320,
+        "min": 200,
+        "max": 1000
+      },
+      {
+        "id": "maxVw",
+        "label": "Max viewport (px)",
+        "type": "number",
+        "default": 1200,
+        "min": 500,
+        "max": 2000
+      }
+    ]
+  },
+  {
+    "slug": "rem-px",
+    "name": "REM ↔ PX Converter",
+    "description": "Convert between rem and pixels",
+    "section": "colors",
+    "aliases": ["px-to-rem", "rem-to-px"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "base",
+        "label": "Base font size (px)",
+        "type": "number",
+        "default": 16,
+        "min": 8,
+        "max": 24
+      }
+    ],
+    "inputPlaceholder": "Enter value (e.g., 16px or 1rem)..."
+  },
+  {
+    "slug": "viewport-units",
+    "name": "Viewport Unit Helper",
+    "description": "Calculate vh/vw for specific viewport sizes",
+    "section": "colors",
+    "aliases": ["vh", "vw", "viewport"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "viewportWidth",
+        "label": "Viewport width (px)",
+        "type": "number",
+        "default": 1920,
+        "min": 320,
+        "max": 3840
+      },
+      {
+        "id": "viewportHeight",
+        "label": "Viewport height (px)",
+        "type": "number",
+        "default": 1080,
+        "min": 320,
+        "max": 2160
+      }
+    ],
+    "inputPlaceholder": "Enter size in vh/vw (e.g., 50vh)..."
+  },
+  {
+    "slug": "color-blend",
+    "name": "Color Blender / Mixer",
+    "description": "Mix two colors with adjustable ratio",
+    "section": "colors",
+    "aliases": ["mix-colors", "blend"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "ratio",
+        "label": "Mix ratio (%)",
+        "type": "number",
+        "default": 50,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "id": "steps",
+        "label": "Show gradient steps",
+        "type": "number",
+        "default": 5,
+        "min": 2,
+        "max": 10
+      }
+    ],
+    "inputPlaceholder": "#ff0000\n---SEPARATOR---\n#0000ff"
+  },
+  {
+    "slug": "json-beautify",
+    "name": "JSON / CSS / HTML Beautify",
+    "description": "Format and beautify code",
+    "section": "code",
+    "aliases": ["beautify", "format-code", "pretty-print"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "language",
+        "label": "Language",
+        "type": "select",
+        "default": "json",
+        "options": [
+          {
+            "value": "json",
+            "label": "JSON"
+          },
+          {
+            "value": "html",
+            "label": "HTML"
+          },
+          {
+            "value": "css",
+            "label": "CSS"
+          }
+        ]
+      },
+      {
+        "id": "indent",
+        "label": "Indent spaces",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      }
+    ]
+  },
+  {
+    "slug": "minify-json",
+    "name": "Minify JSON",
+    "description": "Remove whitespace from JSON",
+    "section": "code",
+    "aliases": ["compress-json", "compact-json"],
+    "inputType": "text",
+    "outputType": "text"
+  },
+  {
+    "slug": "remove-comments",
+    "name": "Remove Comments",
+    "description": "Remove comments from JSON-with-comments, JS, or CSS",
+    "section": "code",
+    "aliases": ["strip-comments", "clean-code"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "language",
+        "label": "Language",
+        "type": "select",
+        "default": "js",
+        "options": [
+          {
+            "value": "js",
+            "label": "JavaScript / JSON-C"
+          },
+          {
+            "value": "css",
+            "label": "CSS"
+          },
+          {
+            "value": "html",
+            "label": "HTML"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "escape-builder",
+    "name": "Escape Builders",
+    "description": "Escape strings for JSON, Regex, Bash, SQL",
+    "section": "code",
+    "aliases": ["escape", "quote", "literal"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "format",
+        "label": "Format",
+        "type": "select",
+        "default": "json",
+        "options": [
+          {
+            "value": "json",
+            "label": "JSON string"
+          },
+          {
+            "value": "regex",
+            "label": "Regex literal"
+          },
+          {
+            "value": "bash",
+            "label": "Bash string"
+          },
+          {
+            "value": "sql",
+            "label": "SQL literal"
+          },
+          {
+            "value": "html",
+            "label": "HTML attribute"
+          },
+          {
+            "value": "url",
+            "label": "URL component"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "normalize-code",
+    "name": "Normalize Newlines & Indentation",
+    "description": "Fix inconsistent line endings and indentation",
+    "section": "code",
+    "aliases": ["fix-whitespace", "normalize"],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "lineEnding",
+        "label": "Line endings",
+        "type": "select",
+        "default": "lf",
+        "options": [
+          {
+            "value": "lf",
+            "label": "LF (Unix/Mac)"
+          },
+          {
+            "value": "crlf",
+            "label": "CRLF (Windows)"
+          }
+        ]
+      },
+      {
+        "id": "indentation",
+        "label": "Indentation",
+        "type": "select",
+        "default": "spaces",
+        "options": [
+          {
+            "value": "keep",
+            "label": "Keep as-is"
+          },
+          {
+            "value": "spaces",
+            "label": "Convert to spaces"
+          },
+          {
+            "value": "tabs",
+            "label": "Convert to tabs"
+          }
+        ]
+      },
+      {
+        "id": "indentSize",
+        "label": "Indent size",
+        "type": "number",
+        "default": 2,
+        "min": 1,
+        "max": 8
+      },
+      {
+        "id": "trimTrailing",
+        "label": "Trim trailing whitespace",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "id": "ensureFinalNewline",
+        "label": "Ensure final newline",
+        "type": "toggle",
+        "default": true
+      }
+    ]
+  }
+]

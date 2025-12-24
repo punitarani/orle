@@ -12,26 +12,40 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Kbd } from "@/components/ui/kbd";
-import { getToolsBySection, SECTIONS, searchTools } from "@/lib/tools/registry";
+import type { ToolMeta } from "@/lib/tools/manifest-types";
+import { SECTION_META } from "@/lib/tools/section-meta";
 
 function SearchResults({
   query,
   onSelect,
   onMoreClick,
+  searchApi,
 }: {
   query: string;
   onSelect: (slug: string) => void;
   onMoreClick: (sectionName: string) => void;
+  searchApi: {
+    searchTools: (query: string) => ToolMeta[];
+    getToolsBySection: (sectionId: string) => ToolMeta[];
+  } | null;
 }) {
-  const filteredTools = query ? searchTools(query) : [];
+  if (!searchApi) {
+    return (
+      <CommandList className="max-h-[60vh]">
+        <CommandEmpty>Loading tools...</CommandEmpty>
+      </CommandList>
+    );
+  }
+
+  const filteredTools = query ? searchApi.searchTools(query) : [];
   const showSections = !query;
 
   return (
     <CommandList className="max-h-[60vh]">
       <CommandEmpty>No tools found.</CommandEmpty>
       {showSections ? (
-        SECTIONS.map((section) => {
-          const tools = getToolsBySection(section.id);
+        SECTION_META.map((section) => {
+          const tools = searchApi.getToolsBySection(section.id);
           if (tools.length === 0) return null;
           return (
             <CommandGroup key={section.id} heading={section.name}>
@@ -84,6 +98,10 @@ function SearchResults({
 export function CommandSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [searchApi, setSearchApi] = useState<{
+    searchTools: (query: string) => ToolMeta[];
+    getToolsBySection: (sectionId: string) => ToolMeta[];
+  } | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -105,6 +123,19 @@ export function CommandSearch() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || searchApi) return;
+    Promise.all([
+      import("@/lib/tools/search"),
+      import("@/lib/tools/manifest"),
+    ]).then(([searchMod, manifestMod]) => {
+      setSearchApi({
+        searchTools: searchMod.searchTools,
+        getToolsBySection: manifestMod.getToolsBySection,
+      });
+    });
+  }, [open, searchApi]);
 
   // Focus input when opened
   useEffect(() => {
@@ -185,6 +216,7 @@ export function CommandSearch() {
             query={query}
             onSelect={handleSelect}
             onMoreClick={setQuery}
+            searchApi={searchApi}
           />
         </Command>
       </div>

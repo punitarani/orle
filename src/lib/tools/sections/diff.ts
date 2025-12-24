@@ -1,5 +1,9 @@
 import * as Diff from "diff";
-import type { DiffResultData, ToolDefinition } from "../types";
+import type {
+  DiffResultData,
+  ToolDefinition,
+  ToolTransformInput,
+} from "../types";
 
 export const diffTools: ToolDefinition[] = [
   {
@@ -37,17 +41,16 @@ export const diffTools: ToolDefinition[] = [
       },
     ],
     transform: (input, opts) => {
-      const str = String(input);
-      const parts = str.split(/---SEPARATOR---|\n---\n/);
-      if (parts.length < 2) {
+      const parts = getDualInput(input);
+      if (!parts) {
         return {
           type: "error",
           message: "Enter text in both panels to compare",
         };
       }
 
-      let text1 = parts[0].trim();
-      let text2 = parts[1].trim();
+      let text1 = parts.a.trim();
+      let text2 = parts.b.trim();
 
       if (opts.ignoreCase) {
         text1 = text1.toLowerCase();
@@ -616,4 +619,29 @@ function levenshtein(a: string, b: string): number {
   }
 
   return matrix[b.length][a.length];
+}
+
+function getDualInput(
+  input: ToolTransformInput,
+): { a: string; b: string } | null {
+  if (typeof input === "object" && input && "kind" in input) {
+    if (input.kind === "dual") {
+      return { a: input.a, b: input.b };
+    }
+    if (input.kind === "text") {
+      return splitDualText(input.text);
+    }
+  }
+
+  if (typeof input === "string") {
+    return splitDualText(input);
+  }
+
+  return null;
+}
+
+function splitDualText(value: string): { a: string; b: string } | null {
+  const parts = value.split(/---SEPARATOR---|\n---\n/);
+  if (parts.length < 2) return null;
+  return { a: parts[0], b: parts[1] };
 }

@@ -31,21 +31,29 @@ import { ToolOutput } from "./tool-output";
 
 function OutputActions({
   value,
-  downloadFilename = "output.txt",
+  download,
 }: {
   value: string;
-  downloadFilename?: string;
+  download?: { url: string; filename: string };
 }) {
   const { copy } = useClipboard();
 
-  if (!value) return null;
+  if (!value && !download) return null;
 
   const handleDownload = () => {
+    if (download) {
+      const a = document.createElement("a");
+      a.href = download.url;
+      a.download = download.filename;
+      a.click();
+      return;
+    }
+
     // Check if it's a data URL or blob URL
     if (value.startsWith("data:") || value.startsWith("blob:")) {
       const a = document.createElement("a");
       a.href = value;
-      a.download = downloadFilename;
+      a.download = "output.txt";
       a.click();
       return;
     }
@@ -55,21 +63,23 @@ function OutputActions({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = downloadFilename;
+    a.download = "output.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="flex gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-7"
-        onClick={() => copy(value)}
-      >
-        <Copy className="size-3.5" />
-      </Button>
+      {value && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          onClick={() => copy(value)}
+        >
+          <Copy className="size-3.5" />
+        </Button>
+      )}
       <Button
         variant="ghost"
         size="icon"
@@ -86,12 +96,14 @@ type ToolPageProps = {
   tool: ToolDefinition;
   initialInput?: string;
   initialOptions?: Record<string, unknown>;
+  showHeader?: boolean;
 };
 
 export function ToolPage({
   tool,
   initialInput,
   initialOptions,
+  showHeader = true,
 }: ToolPageProps) {
   const { copy } = useClipboard();
   const {
@@ -99,6 +111,7 @@ export function ToolPage({
     input2,
     output,
     outputData,
+    download,
     options,
     isProcessing,
     error,
@@ -116,6 +129,7 @@ export function ToolPage({
 
   const toolInputRef = useRef<ToolInputRef>(null);
   const [hasFile, setHasFile] = useState(false);
+  const disableRun = isProcessing || (!input && !file);
 
   // Track file state from ToolInput
   useEffect(() => {
@@ -163,6 +177,34 @@ export function ToolPage({
       }
     }
 
+    if (download) {
+      return (
+        <div className="rounded-lg border bg-muted/20 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">{download.filename}</p>
+              <p className="text-xs text-muted-foreground">
+                {download.mime} • {formatBytes(download.size)}
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const a = document.createElement("a");
+                a.href = download.url;
+                a.download = download.filename;
+                a.click();
+              }}
+            >
+              <Download className="mr-2 size-4" />
+              Download
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     // Default text output
     return (
       <ToolOutput
@@ -190,41 +232,45 @@ export function ToolPage({
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{tool.name}</h1>
-          <p className="text-sm text-muted-foreground">{tool.description}</p>
-          {tool.aliases.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-1">
-              {tool.aliases.slice(0, 4).map((alias) => (
-                <Badge
-                  key={alias}
-                  variant="secondary"
-                  className="text-xs font-normal"
-                >
-                  {alias}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {tool.allowSwap && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={swap}
-              disabled={!output}
-              className="h-8"
-            >
-              <ArrowLeftRight className="size-4" />
+      {showHeader && (
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {tool.name}
+            </h1>
+            <p className="text-sm text-muted-foreground">{tool.description}</p>
+            {tool.aliases.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {tool.aliases.slice(0, 4).map((alias) => (
+                  <Badge
+                    key={alias}
+                    variant="secondary"
+                    className="text-xs font-normal"
+                  >
+                    {alias}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {tool.allowSwap && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={swap}
+                disabled={!output}
+                className="h-8"
+              >
+                <ArrowLeftRight className="size-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={clear} className="h-8">
+              <RotateCcw className="size-4" />
             </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={clear} className="h-8">
-            <RotateCcw className="size-4" />
-          </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Options */}
       {tool.options && tool.options.length > 0 && (
@@ -251,7 +297,7 @@ export function ToolPage({
               <span className="text-sm font-medium text-muted-foreground">
                 Differences
               </span>
-              <OutputActions value={output} />
+              <OutputActions value={output} download={download ?? undefined} />
             </div>
             {renderOutput()}
           </div>
@@ -284,12 +330,14 @@ export function ToolPage({
               value={input}
               onChange={setInput}
               onFileChange={setFile}
+              acceptsFile={tool.acceptsFile}
+              fileAccept={tool.fileAccept}
               placeholder={tool.inputPlaceholder}
             />
-            {tool.inputType === "text" && (
+            {(tool.runPolicy === "manual" || tool.inputType === "text") && (
               <Button
                 onClick={runTransform}
-                disabled={!input || isProcessing}
+                disabled={disableRun}
                 className="self-end"
               >
                 <Play className="mr-2 size-4" />
@@ -310,10 +358,15 @@ export function ToolPage({
                     ? (outputData as ImageResultData).resultUrl
                     : output
                 }
-                downloadFilename={
+                download={
                   outputData?.type === "image-result"
-                    ? (outputData as ImageResultData).filename
-                    : "output.txt"
+                    ? {
+                        url: (outputData as ImageResultData).resultUrl,
+                        filename:
+                          (outputData as ImageResultData).filename ??
+                          "output.txt",
+                      }
+                    : (download ?? undefined)
                 }
               />
             </div>
@@ -330,7 +383,7 @@ export function ToolPage({
               <span className="text-sm font-medium text-muted-foreground">
                 Output
               </span>
-              <OutputActions value={output} />
+              <OutputActions value={output} download={download ?? undefined} />
             </div>
             <Button
               variant="outline"
@@ -352,4 +405,12 @@ export function ToolPage({
       )}
     </div>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }

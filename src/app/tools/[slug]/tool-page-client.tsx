@@ -1,13 +1,30 @@
 "use client";
 
-import { notFound, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { ToolPage } from "@/components/tools/tool-page";
-import { getToolBySlug } from "@/lib/tools/registry";
+import { getToolMetaBySlug } from "@/lib/tools/manifest";
+import { loadToolRuntime } from "@/lib/tools/runtime";
+import type { ToolDefinition } from "@/lib/tools/types";
 
 export function ToolPageClient({ slug }: { slug: string }) {
-  const tool = getToolBySlug(slug);
+  const [tool, setTool] = useState<ToolDefinition | null>(null);
+  const toolMeta = getToolMetaBySlug(slug);
   const searchParams = useSearchParams();
+
+  const runtimeSlug = toolMeta?.canonicalSlug ?? slug;
+
+  useEffect(() => {
+    let active = true;
+    loadToolRuntime(runtimeSlug).then((loaded) => {
+      if (active) {
+        setTool(loaded ?? null);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [runtimeSlug]);
 
   // Parse initial values from URL params (for Raycast "Open in orle.dev" action)
   const initialInput = useMemo(() => {
@@ -15,10 +32,8 @@ export function ToolPageClient({ slug }: { slug: string }) {
     if (!inputParam) return undefined;
 
     try {
-      // Input is base64 encoded
       return atob(inputParam);
     } catch {
-      // Fall back to raw value if not valid base64
       return inputParam;
     }
   }, [searchParams]);
@@ -34,15 +49,33 @@ export function ToolPageClient({ slug }: { slug: string }) {
     }
   }, [searchParams]);
 
+  const mergedOptions = useMemo(() => {
+    if (!toolMeta?.presetOptions) return initialOptions;
+    return { ...toolMeta.presetOptions, ...initialOptions };
+  }, [toolMeta?.presetOptions, initialOptions]);
+
+  if (!toolMeta) {
+    return (
+      <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+        Tool not found.
+      </div>
+    );
+  }
+
   if (!tool) {
-    notFound();
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   return (
     <ToolPage
       tool={tool}
       initialInput={initialInput}
-      initialOptions={initialOptions}
+      initialOptions={mergedOptions}
+      showHeader={false}
     />
   );
 }
