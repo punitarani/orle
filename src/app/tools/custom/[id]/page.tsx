@@ -33,9 +33,38 @@ import { Button } from "@/components/ui/button";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { deleteCustomTool, getCustomTool } from "@/lib/tools/custom-tools-db";
 import { executeTransform } from "@/lib/tools/safe-executor";
-import type { CustomToolDefinition } from "@/lib/tools/types";
+import type {
+  CustomToolDefinition,
+  ToolExample,
+  ToolOption,
+} from "@/lib/tools/types";
 
 const DEBOUNCE_DELAY = 300;
+
+// Helper to convert null values to undefined for compatibility with existing types
+function toToolOptions(
+  options: CustomToolDefinition["options"],
+): ToolOption[] | undefined {
+  if (!options) return undefined;
+  return options.map((opt) => ({
+    ...opt,
+    options: opt.options ?? undefined,
+    min: opt.min ?? undefined,
+    max: opt.max ?? undefined,
+    step: opt.step ?? undefined,
+  }));
+}
+
+function toToolExamples(
+  examples: CustomToolDefinition["examples"],
+): ToolExample[] | undefined {
+  if (!examples) return undefined;
+  return examples.map((ex) => ({
+    ...ex,
+    name: ex.name ?? undefined,
+    output: ex.output ?? undefined,
+  }));
+}
 
 function OutputActions({
   value,
@@ -403,7 +432,7 @@ export default function CustomToolPage({
       {/* Options */}
       {tool.options && tool.options.length > 0 && (
         <ToolOptions
-          options={tool.options}
+          options={toToolOptions(tool.options) ?? []}
           values={options}
           onChange={handleOptionChange}
         />
@@ -509,7 +538,10 @@ export default function CustomToolPage({
 
       {/* Examples */}
       {tool.examples && tool.examples.length > 0 && (
-        <ToolExamples examples={tool.examples} onLoad={handleLoadExample} />
+        <ToolExamples
+          examples={toToolExamples(tool.examples) ?? []}
+          onLoad={handleLoadExample}
+        />
       )}
     </div>
   );
