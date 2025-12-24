@@ -188,7 +188,6 @@ export async function POST(req: Request) {
       output: Output.object({ schema: customToolDefinitionSchema }),
       system: SYSTEM_PROMPT,
       prompt: `Create a developer tool based on this description:\n\n${prompt}\n\nGenerate a complete tool definition with a working transformCode.`,
-      temperature: 0.7,
     });
 
     return result.toTextStreamResponse();

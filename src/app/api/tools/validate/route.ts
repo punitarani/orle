@@ -214,7 +214,6 @@ Static analysis found these issues: ${
       }
 
 Provide your validation result.`,
-      temperature: 0.3,
     });
 
     // Merge static analysis with AI review
