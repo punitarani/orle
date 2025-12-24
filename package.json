@@ -52,6 +52,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@scure/base": "^2.0.0",
     "@types/react-window": "^2.0.0",
+    "@vercel/analytics": "^1.6.1",
     "ai": "^6.0.3",
     "bech32": "^2.0.0",
     "class-variance-authority": "^0.7.1",

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSearch } from "@/components/layout/command-search";
@@ -74,6 +75,7 @@ export default async function RootLayout({
             </SidebarInset>
           </SidebarProvider>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
