@@ -1,5 +1,5 @@
 import { Output, streamText } from "ai";
-import { createDevToolsModel, GENERATOR_MODEL } from "@/lib/ai/model";
+import { createModel, GENERATOR_MODEL } from "@/lib/ai/model";
 import { customToolDefinitionSchema } from "@/lib/tools/types";
 
 // Allow streaming responses up to 60 seconds
@@ -182,9 +182,9 @@ export async function POST(req: Request) {
     }
 
     // Using Vercel AI Gateway with DevTools middleware for debugging
-    // Run `npx @ai-sdk/devtools` to view the DevTools dashboard at http://localhost:4983
+    // Run `bun run devtools` to view the DevTools dashboard at http://localhost:4983
     const result = streamText({
-      model: createDevToolsModel(GENERATOR_MODEL),
+      model: await createModel(GENERATOR_MODEL),
       output: Output.object({ schema: customToolDefinitionSchema }),
       system: SYSTEM_PROMPT,
       prompt: `Create a developer tool based on this description:\n\n${prompt}\n\nGenerate a complete tool definition with a working transformCode.`,

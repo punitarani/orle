@@ -1,5 +1,5 @@
 import { generateText, Output } from "ai";
-import { createDevToolsModel, VALIDATOR_MODEL } from "@/lib/ai/model";
+import { createModel, VALIDATOR_MODEL } from "@/lib/ai/model";
 import {
   type CustomToolDefinitionGenerated,
   validationResultSchema,
@@ -188,9 +188,9 @@ export async function POST(req: Request) {
     }
 
     // Use AI to do deeper review via Vercel AI Gateway with DevTools middleware
-    // Run `npx @ai-sdk/devtools` to view the DevTools dashboard at http://localhost:4983
+    // Run `bun run devtools` to view the DevTools dashboard at http://localhost:4983
     const { output } = await generateText({
-      model: createDevToolsModel(VALIDATOR_MODEL),
+      model: await createModel(VALIDATOR_MODEL),
       output: Output.object({ schema: validationResultSchema }),
       system: VALIDATOR_PROMPT,
       prompt: `Review this tool definition:
