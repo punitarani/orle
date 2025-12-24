@@ -127,30 +127,51 @@ export const toolOptionTypeSchema = z.enum([
   "text",
 ]);
 
-export const toolOptionSchema = z.object({
-  id: z
-    .string()
-    .describe(
-      "Unique identifier for this option, used as key in options object",
-    ),
-  label: z.string().describe("Human-readable label shown in UI"),
-  type: toolOptionTypeSchema.describe("The type of UI control to render"),
-  default: z
-    .union([z.string(), z.number(), z.boolean()])
-    .describe("Default value for this option"),
-  options: z
-    .array(
-      z.object({
-        value: z.string(),
-        label: z.string(),
-      }),
-    )
-    .optional()
-    .describe("For select type: array of {value, label} choices"),
-  min: z.number().optional().describe("For number type: minimum value"),
-  max: z.number().optional().describe("For number type: maximum value"),
-  step: z.number().optional().describe("For number type: step increment"),
-});
+export const toolOptionSchema = z
+  .object({
+    id: z
+      .string()
+      .describe(
+        "Unique identifier for this option, used as key in options object",
+      ),
+    label: z.string().describe("Human-readable label shown in UI"),
+    type: toolOptionTypeSchema.describe("The type of UI control to render"),
+    default: z
+      .union([z.string(), z.number(), z.boolean()])
+      .describe("Default value for this option"),
+    options: z
+      .array(
+        z
+          .object({
+            value: z.string(),
+            label: z.string(),
+          })
+          .strict(),
+      )
+      .nullable()
+      .describe(
+        "For select type: array of {value, label} choices. Set to null if not a select type.",
+      ),
+    min: z
+      .number()
+      .nullable()
+      .describe(
+        "For number type: minimum value. Set to null if not a number type.",
+      ),
+    max: z
+      .number()
+      .nullable()
+      .describe(
+        "For number type: maximum value. Set to null if not a number type.",
+      ),
+    step: z
+      .number()
+      .nullable()
+      .describe(
+        "For number type: step increment. Set to null if not a number type.",
+      ),
+  })
+  .strict();
 
 export const toolInputTypeSchema = z.enum(["text", "file", "dual", "none"]);
 export const toolOutputTypeSchema = z.enum([
@@ -164,73 +185,96 @@ export const toolOutputTypeSchema = z.enum([
   "diff",
 ]);
 
-export const toolExampleSchema = z.object({
-  name: z
-    .string()
-    .optional()
-    .describe("Optional name/description for this example"),
-  input: z.string().describe("Example input value"),
-  output: z.string().optional().describe("Expected output for this input"),
-});
+export const toolExampleSchema = z
+  .object({
+    name: z
+      .string()
+      .nullable()
+      .describe(
+        "Name/description for this example. Set to null if not needed.",
+      ),
+    input: z.string().describe("Example input value"),
+    output: z
+      .string()
+      .nullable()
+      .describe("Expected output for this input. Set to null if not provided."),
+  })
+  .strict();
 
 /**
  * Schema for AI-generated tool definitions.
  * The transform is a string (code) that will be safely executed.
+ *
+ * Note: We use .nullable() instead of .optional() because OpenAI's structured
+ * output strict mode requires all properties to be in the 'required' array.
+ * We also use .strict() to add additionalProperties: false.
  */
-export const customToolDefinitionSchema = z.object({
-  slug: z
-    .string()
-    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens")
-    .describe("URL-friendly unique identifier, e.g., 'csv-to-json'"),
-  name: z
-    .string()
-    .min(3)
-    .max(50)
-    .describe("Human-readable tool name, e.g., 'CSV to JSON Converter'"),
-  description: z
-    .string()
-    .min(10)
-    .max(200)
-    .describe("Brief description of what the tool does"),
-  section: z
-    .literal("custom")
-    .describe("Section identifier - always 'custom' for generated tools"),
-  aliases: z
-    .array(z.string())
-    .max(10)
-    .describe("Alternative search terms for finding this tool"),
-  inputType: toolInputTypeSchema.describe("Type of input the tool accepts"),
-  outputType: toolOutputTypeSchema.describe("Type of output the tool produces"),
-  options: z
-    .array(toolOptionSchema)
-    .max(10)
-    .optional()
-    .describe("Configurable options for the tool"),
-  transformCode: z
-    .string()
-    .describe(
-      "JavaScript function body as string: receives (input, opts) and returns string or {type:'error', message:string}",
+export const customToolDefinitionSchema = z
+  .object({
+    slug: z
+      .string()
+      .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens")
+      .describe("URL-friendly unique identifier, e.g., 'csv-to-json'"),
+    name: z
+      .string()
+      .min(3)
+      .max(50)
+      .describe("Human-readable tool name, e.g., 'CSV to JSON Converter'"),
+    description: z
+      .string()
+      .min(10)
+      .max(200)
+      .describe("Brief description of what the tool does"),
+    section: z
+      .literal("custom")
+      .describe("Section identifier - always 'custom' for generated tools"),
+    aliases: z
+      .array(z.string())
+      .max(10)
+      .describe("Alternative search terms for finding this tool"),
+    inputType: toolInputTypeSchema.describe("Type of input the tool accepts"),
+    outputType: toolOutputTypeSchema.describe(
+      "Type of output the tool produces",
     ),
-  examples: z
-    .array(toolExampleSchema)
-    .max(5)
-    .optional()
-    .describe("Example inputs/outputs to demonstrate the tool"),
-  allowSwap: z
-    .boolean()
-    .optional()
-    .describe(
-      "Whether to allow swapping input/output (for encode/decode tools)",
-    ),
-  inputPlaceholder: z
-    .string()
-    .optional()
-    .describe("Placeholder text for the input field"),
-  outputPlaceholder: z
-    .string()
-    .optional()
-    .describe("Placeholder text for the output field"),
-});
+    options: z
+      .array(toolOptionSchema)
+      .max(10)
+      .nullable()
+      .describe(
+        "Configurable options for the tool. Set to null if no options needed.",
+      ),
+    transformCode: z
+      .string()
+      .describe(
+        "JavaScript function body as string: receives (input, opts) and returns string or {type:'error', message:string}",
+      ),
+    examples: z
+      .array(toolExampleSchema)
+      .max(5)
+      .nullable()
+      .describe(
+        "Example inputs/outputs to demonstrate the tool. Set to null if no examples.",
+      ),
+    allowSwap: z
+      .boolean()
+      .nullable()
+      .describe(
+        "Whether to allow swapping input/output (for encode/decode tools). Set to null if not applicable.",
+      ),
+    inputPlaceholder: z
+      .string()
+      .nullable()
+      .describe(
+        "Placeholder text for the input field. Set to null for default.",
+      ),
+    outputPlaceholder: z
+      .string()
+      .nullable()
+      .describe(
+        "Placeholder text for the output field. Set to null for default.",
+      ),
+  })
+  .strict();
 
 export type CustomToolDefinitionGenerated = z.infer<
   typeof customToolDefinitionSchema
@@ -248,18 +292,24 @@ export type CustomToolDefinition = CustomToolDefinitionGenerated & {
 
 /**
  * Validation result from the validator agent
+ *
+ * Note: We use .nullable() instead of .optional() because OpenAI's structured
+ * output strict mode requires all properties to be in the 'required' array.
+ * We also use .strict() to add additionalProperties: false.
  */
-export const validationResultSchema = z.object({
-  valid: z.boolean(),
-  issues: z.array(z.string()).describe("List of validation issues found"),
-  securityConcerns: z
-    .array(z.string())
-    .optional()
-    .describe("Security-related issues"),
-  suggestions: z
-    .array(z.string())
-    .optional()
-    .describe("Improvement suggestions"),
-});
+export const validationResultSchema = z
+  .object({
+    valid: z.boolean(),
+    issues: z.array(z.string()).describe("List of validation issues found"),
+    securityConcerns: z
+      .array(z.string())
+      .nullable()
+      .describe("Security-related issues. Set to null if none."),
+    suggestions: z
+      .array(z.string())
+      .nullable()
+      .describe("Improvement suggestions. Set to null if none."),
+  })
+  .strict();
 
 export type ValidationResult = z.infer<typeof validationResultSchema>;

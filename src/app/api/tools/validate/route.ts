@@ -95,11 +95,7 @@ function performStaticAnalysis(tool: CustomToolDefinitionGenerated): {
       }
 
       if (opt.type === "number") {
-        if (
-          opt.min !== undefined &&
-          opt.max !== undefined &&
-          opt.min > opt.max
-        ) {
+        if (opt.min != null && opt.max != null && opt.min > opt.max) {
           issues.push(`Option "${opt.id}" has min > max`);
         }
       }
