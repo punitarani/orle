@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { ChevronRight, Info, Sparkles, Trash2, Wand2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +10,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import {
   Sidebar,
   SidebarContent,
@@ -228,6 +233,25 @@ export function AppSidebar() {
         <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
           <span className="flex size-1.5 rounded-full bg-emerald-500" />
           <span>100% client-side • No telemetry</span>
+          <HoverCard openDelay={100}>
+            <HoverCardTrigger asChild>
+              <button
+                type="button"
+                aria-label="How client-side processing works"
+                className="ml-0.5 inline-flex size-4 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Info className="size-3" />
+              </button>
+            </HoverCardTrigger>
+            <HoverCardContent
+              side="top"
+              align="center"
+              className="w-64 text-xs leading-snug"
+            >
+              Only AI requests are server-side. Everything else runs client-side
+              in your browser after that.
+            </HoverCardContent>
+          </HoverCard>
         </div>
       </SidebarFooter>
     </Sidebar>
