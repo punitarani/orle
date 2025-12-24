@@ -3,12 +3,15 @@
 import { Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function HeaderSidebarTrigger() {
   const { state } = useSidebar();
+  const isMobile = useIsMobile();
   const isCollapsed = state === "collapsed";
 
-  if (!isCollapsed) return null;
+  // Always show on mobile, only show when collapsed on desktop
+  if (!isMobile && !isCollapsed) return null;
 
   return <SidebarTrigger className="size-8" />;
 }
