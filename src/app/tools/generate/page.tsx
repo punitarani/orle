@@ -28,7 +28,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Conversation,
   ConversationContent,
-  ConversationScrollButton,
+  ConversationScrollControls,
 } from "@/components/ai-elements/conversation";
 import {
   Message,
@@ -1198,7 +1198,7 @@ export default function ToolGeneratePage() {
                   </div>
                 )}
               </ConversationContent>
-              <ConversationScrollButton className="bottom-6 safe-bottom" />
+              <ConversationScrollControls className="bottom-6 safe-bottom" />
             </Conversation>
           )}
 

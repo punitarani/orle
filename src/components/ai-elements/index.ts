@@ -3,6 +3,7 @@ export {
   ConversationContent,
   ConversationEmptyState,
   ConversationScrollButton,
+  ConversationScrollControls,
   useConversation,
 } from './conversation';
 
@@ -25,4 +26,3 @@ export {
 } from './prompt-input';
 
 export { Loader } from './loader';
-

@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { ChevronDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { createContext, useContext } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -121,3 +121,56 @@ export function ConversationScrollButton({
   );
 }
 
+export function ConversationScrollControls({
+  className,
+  ...props
+}: ComponentProps<'div'>) {
+  const context = useConversation();
+  const isAtTop = context.state.scrollTop <= 2;
+  const isAtBottom = context.isAtBottom;
+
+  const handleScrollToTop = () => {
+    const scrollElement = context.scrollRef.current;
+    if (!scrollElement) {
+      return;
+    }
+    scrollElement.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (isAtTop && isAtBottom) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        'absolute bottom-4 right-4 flex flex-col items-center gap-2',
+        className
+      )}
+      {...props}
+    >
+      {!isAtTop && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full shadow-lg"
+          onClick={handleScrollToTop}
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="size-4" />
+        </Button>
+      )}
+      {!isAtBottom && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full shadow-lg"
+          onClick={() => context.scrollToBottom('smooth')}
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown className="size-4" />
+        </Button>
+      )}
+    </div>
+  );
+}
