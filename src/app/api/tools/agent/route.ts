@@ -6,6 +6,7 @@ import {
 } from "ai";
 import { z } from "zod";
 import { createModel, GENERATOR_MODEL } from "@/lib/ai/model";
+import { executeTransform } from "@/lib/tools/safe-executor";
 import {
   type CustomToolDefinitionGenerated,
   customToolDefinitionSchema,
@@ -35,6 +36,41 @@ const DANGEROUS_PATTERNS = [
   { pattern: /\b__proto__\b/, name: "prototype pollution" },
 ];
 
+// Prompt injection patterns to detect malicious input
+const PROMPT_INJECTION_PATTERNS = [
+  /ignore\s+(previous|above|all|prior)\s+(instructions?|prompts?|rules?)/i,
+  /system\s+prompt/i,
+  /you\s+are\s+now/i,
+  /forget\s+(everything|all|previous)/i,
+  /new\s+(role|instructions?|persona)/i,
+  /\b(bypass|override|disable)\s+(validation|rules?|restrictions?)/i,
+  /\b(admin|root|sudo|superuser)\b/i,
+  /execute\s+code/i,
+  /run\s+arbitrary/i,
+];
+
+// Restricted keywords for tool content
+const RESTRICTED_KEYWORDS = [
+  "cryptocurrency",
+  "blockchain",
+  "bitcoin",
+  "ethereum",
+  "hack",
+  "crack",
+  "exploit",
+  "vulnerability",
+  "malware",
+  "virus",
+  "ransomware",
+  "private key",
+  "password cracker",
+  "bypass validation",
+  "ignore rules",
+  "sql injection",
+  "xss attack",
+  "ddos",
+];
+
 const VALID_INPUT_TYPES = ["text", "file", "dual", "none"];
 const VALID_OUTPUT_TYPES = [
   "text",
@@ -48,6 +84,20 @@ const VALID_OUTPUT_TYPES = [
 ];
 const VALID_OPTION_TYPES = ["toggle", "select", "number", "text"];
 
+function detectPromptInjection(input: string): boolean {
+  return PROMPT_INJECTION_PATTERNS.some((pattern) => pattern.test(input));
+}
+
+function containsRestrictedContent(
+  tool: CustomToolDefinitionGenerated,
+): boolean {
+  const searchText =
+    `${tool.name} ${tool.description} ${tool.transformCode}`.toLowerCase();
+  return RESTRICTED_KEYWORDS.some((keyword) =>
+    searchText.includes(keyword.toLowerCase()),
+  );
+}
+
 function performStaticAnalysis(
   tool: CustomToolDefinitionGenerated,
 ): ValidationResult {
@@ -60,6 +110,13 @@ function performStaticAnalysis(
     if (pattern.test(code)) {
       securityConcerns.push(`Forbidden pattern detected: ${name}`);
     }
+  }
+
+  // Check for restricted content
+  if (containsRestrictedContent(tool)) {
+    securityConcerns.push(
+      "Tool contains restricted keywords related to security, cryptocurrency, or malicious activities",
+    );
   }
 
   // Validate slug format
@@ -115,6 +172,21 @@ function performStaticAnalysis(
     /for\s*\(\s*;\s*;\s*\)/.test(code)
   ) {
     securityConcerns.push("Potential infinite loop detected");
+  }
+
+  // Check for code obfuscation attempts
+  if (
+    /\\x[0-9a-f]{2}/i.test(code) ||
+    /\\u[0-9a-f]{4}/i.test(code) ||
+    code.includes("fromCharCode")
+  ) {
+    securityConcerns.push("Potential code obfuscation detected");
+  }
+
+  // Check for excessively complex code
+  const nestingLevel = (code.match(/\{/g) || []).length;
+  if (nestingLevel > 20) {
+    issues.push("Code is too complex (excessive nesting)");
   }
 
   const valid = issues.length === 0 && securityConcerns.length === 0;
@@ -173,9 +245,21 @@ const AGENT_INSTRUCTIONS = `You are an expert developer tool generator for orle.
 ## Your Workflow
 1. When the user describes a tool, use the generateToolDefinition tool to create it
 2. Always validate your generated tool using the validateToolDefinition tool
-3. If validation fails, analyze the errors and regenerate with fixes
-4. Continue this generate-validate loop until the tool passes validation
-5. Maximum 5 attempts - if you can't create a valid tool, explain what's wrong
+3. If validation passes, test it with the testToolRuntime tool to ensure it works
+4. If either validation or runtime test fails, analyze the errors and regenerate with fixes
+5. Continue this generate-validate-test loop until everything works correctly
+6. Maximum 5 attempts - if you can't create a valid tool, explain what's wrong
+
+## Restrictions
+You MUST NOT create tools that:
+- Involve cryptocurrency, blockchain, or financial transactions
+- Are designed for hacking, cracking, or exploiting systems
+- Generate malware, viruses, or malicious code
+- Bypass security measures or validation
+- Access private keys, passwords, or sensitive credentials
+- Perform SQL injection, XSS attacks, or other security exploits
+
+If a user requests such a tool, politely decline and suggest an alternative legitimate use case.
 
 ## Tool Definition Requirements
 - slug: URL-friendly (lowercase, hyphens only)
@@ -235,6 +319,7 @@ After each tool generation or validation, explain what you did:
 type AgentContext = {
   lastGeneratedTool: CustomToolDefinitionGenerated | null;
   lastValidation: ValidationResult | null;
+  runtimeTestPassed: boolean;
   attempts: number;
 };
 
@@ -242,12 +327,38 @@ export async function POST(req: Request) {
   try {
     const { messages }: { messages: UIMessage[] } = await req.json();
 
+    // Validate message length
+    const userMessages = messages.filter((m) => m.role === "user");
+    const lastMessage = userMessages[userMessages.length - 1];
+    if (lastMessage?.content && typeof lastMessage.content === "string") {
+      if (lastMessage.content.length > 1000) {
+        return new Response(
+          JSON.stringify({
+            error: "Input too long. Maximum 1000 characters.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      // Check for prompt injection attempts
+      if (detectPromptInjection(lastMessage.content)) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Invalid input detected. Please describe your tool request clearly without attempting to modify system behavior.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     const model = await createModel(GENERATOR_MODEL);
 
     // Create agent context
     const context: AgentContext = {
       lastGeneratedTool: null,
       lastValidation: null,
+      runtimeTestPassed: false,
       attempts: 0,
     };
 
@@ -315,12 +426,91 @@ export async function POST(req: Request) {
             };
           },
         }),
+        testToolRuntime: tool({
+          description:
+            "Test the tool with sample input to ensure it works correctly at runtime. Call this after validation passes.",
+          inputSchema: z.object({
+            toolDefinition: customToolDefinitionSchema.describe(
+              "The tool definition to test",
+            ),
+            testInput: z
+              .string()
+              .optional()
+              .describe("Sample input to test with (optional)"),
+          }),
+          execute: async ({
+            toolDefinition,
+            testInput,
+          }: {
+            toolDefinition: CustomToolDefinitionGenerated;
+            testInput?: string;
+          }) => {
+            try {
+              // Determine test input based on tool type
+              let input = testInput || "test";
+              if (toolDefinition.inputType === "none") {
+                input = "";
+              }
+
+              // Build default options
+              const testOptions: Record<string, unknown> = {};
+              if (toolDefinition.options) {
+                for (const opt of toolDefinition.options) {
+                  testOptions[opt.id] = opt.default;
+                }
+              }
+
+              // Execute with sample input
+              const result = await executeTransform(
+                toolDefinition.transformCode,
+                input,
+                testOptions,
+              );
+
+              // Check if result is an error
+              if (
+                typeof result === "object" &&
+                result !== null &&
+                "type" in result &&
+                result.type === "error"
+              ) {
+                context.runtimeTestPassed = false;
+                return {
+                  success: false,
+                  error: result.message,
+                  message: "Runtime test failed - tool produced an error",
+                };
+              }
+
+              context.runtimeTestPassed = true;
+              return {
+                success: true,
+                result:
+                  typeof result === "string"
+                    ? result.substring(0, 100)
+                    : "Success",
+                message: "Tool executed successfully at runtime!",
+              };
+            } catch (e) {
+              context.runtimeTestPassed = false;
+              return {
+                success: false,
+                error: (e as Error).message,
+                message: "Runtime test failed with exception",
+              };
+            }
+          },
+        }),
       },
       stopWhen: () => {
-        // Stop if validation passed or max attempts reached
-        if (context.lastValidation?.valid === true) {
+        // Stop if validation passed AND runtime test succeeded
+        if (
+          context.lastValidation?.valid === true &&
+          context.runtimeTestPassed === true
+        ) {
           return true;
         }
+        // Stop if max attempts reached
         if (context.attempts >= 5) {
           return true;
         }

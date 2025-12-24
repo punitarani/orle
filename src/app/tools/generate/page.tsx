@@ -31,6 +31,7 @@ import {
 } from "@/components/ai-elements/message";
 import {
   PromptInput,
+  PromptInputCharacterCount,
   PromptInputSubmit,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
@@ -42,6 +43,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClipboard } from "@/hooks/use-clipboard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   generateUniqueSlug,
   saveCustomTool,
@@ -52,6 +54,7 @@ import type {
   CustomToolDefinitionGenerated,
   ToolOption,
 } from "@/lib/tools/types";
+import { cn } from "@/lib/utils";
 
 // Component to render a tool preview card
 function ToolPreviewCard({
@@ -260,6 +263,7 @@ function CodeViewer({ code, title }: { code: string; title: string }) {
 
 export default function ToolGeneratePage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [lastValidTool, setLastValidTool] =
     useState<CustomToolDefinitionGenerated | null>(null);
   const [saving, setSaving] = useState(false);
@@ -268,6 +272,7 @@ export default function ToolGeneratePage() {
   const [testError, setTestError] = useState<string | undefined>(undefined);
   const [isTesting, setIsTesting] = useState(false);
   const [testOptions, setTestOptions] = useState<Record<string, unknown>>({});
+  const [activeTab, setActiveTab] = useState<"agent" | "tool">("agent");
 
   const transport = useMemo(
     () =>
@@ -288,6 +293,7 @@ export default function ToolGeneratePage() {
     setTestOutput("");
     setTestError(undefined);
     setTestOptions({});
+    setActiveTab("agent");
   }, [setMessages]);
 
   const handleSave = async () => {
@@ -502,10 +508,30 @@ export default function ToolGeneratePage() {
         </div>
       </div>
 
+      {/* Mobile Tab Selector */}
+      {isMobile && latestTool && (
+        <div className="border-b px-4 py-2 bg-background shrink-0">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as "agent" | "tool")}
+          >
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="agent">Agent</TabsTrigger>
+              <TabsTrigger value="tool">Tool</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Chat Column */}
-        <div className="flex flex-1 flex-col border-r min-h-0">
+        <div
+          className={cn(
+            "flex flex-1 flex-col border-r min-h-0",
+            isMobile && activeTab !== "agent" && "hidden",
+          )}
+        >
           {/* Empty State - No scroll, centered content */}
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -671,24 +697,28 @@ export default function ToolGeneratePage() {
             <div className="max-w-3xl mx-auto">
               <PromptInput
                 onSubmit={async (msg) => {
-                  if (msg.text.trim()) {
+                  if (msg.text.trim() && msg.text.length <= 1000) {
                     await sendMessage({ text: msg.text });
                   }
                 }}
                 disabled={status === "streaming"}
+                maxLength={1000}
+                showCharacterCount="near-limit"
               >
-                <PromptInputTextarea
-                  placeholder={
-                    messages.length === 0
-                      ? "Describe the tool you want to create..."
-                      : "Ask for changes, improvements, or create a new tool..."
-                  }
-                  className="min-h-[60px]"
-                />
-                <PromptInputSubmit
-                  status={status === "streaming" ? "streaming" : "ready"}
-                  className="absolute bottom-2 right-2"
-                />
+                <div className="flex items-end gap-2 flex-1">
+                  <PromptInputTextarea
+                    placeholder={
+                      messages.length === 0
+                        ? "Describe the tool you want to create..."
+                        : "Ask for changes, improvements, or create a new tool..."
+                    }
+                    className="min-h-[60px] flex-1"
+                  />
+                  <PromptInputSubmit
+                    status={status === "streaming" ? "streaming" : "ready"}
+                  />
+                </div>
+                <PromptInputCharacterCount className="self-end" />
               </PromptInput>
             </div>
           </div>
@@ -696,7 +726,12 @@ export default function ToolGeneratePage() {
 
         {/* Preview/Test Panel */}
         {latestTool && (
-          <div className="w-96 shrink-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "shrink-0 flex flex-col overflow-hidden",
+              isMobile ? (activeTab === "tool" ? "w-full" : "hidden") : "w-96",
+            )}
+          >
             <Tabs defaultValue="test" className="flex flex-col h-full">
               <TabsList className="mx-4 mt-4 shrink-0">
                 <TabsTrigger value="test" className="flex-1">

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ArrowUp, Loader2, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import type { ComponentProps, FormEvent } from "react";
 import { createContext, useContext, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ interface PromptInputContextType {
   setValue: (value: string) => void;
   onSubmit: () => void;
   disabled?: boolean;
+  maxLength?: number;
+  showCharacterCount?: "always" | "near-limit" | "never";
 }
 
 const PromptInputContext = createContext<PromptInputContextType | null>(null);
@@ -27,16 +29,27 @@ function usePromptInput() {
 interface PromptInputProps extends Omit<ComponentProps<"form">, "onSubmit"> {
   onSubmit?: (message: { text: string }) => void | Promise<void>;
   disabled?: boolean;
+  maxLength?: number;
+  showCharacterCount?: "always" | "near-limit" | "never";
 }
 
 export function PromptInput({
   onSubmit,
   disabled,
+  maxLength,
+  showCharacterCount = "never",
   className,
   children,
   ...props
 }: PromptInputProps) {
   const [value, setValue] = useState("");
+
+  const handleSetValue = (newValue: string) => {
+    if (maxLength && newValue.length > maxLength) {
+      return; // Don't update if exceeds max length
+    }
+    setValue(newValue);
+  };
 
   const handleSubmit = (e?: FormEvent) => {
     e?.preventDefault();
@@ -48,12 +61,19 @@ export function PromptInput({
 
   return (
     <PromptInputContext.Provider
-      value={{ value, setValue, onSubmit: handleSubmit, disabled }}
+      value={{
+        value,
+        setValue: handleSetValue,
+        onSubmit: handleSubmit,
+        disabled,
+        maxLength,
+        showCharacterCount,
+      }}
     >
       <form
         onSubmit={handleSubmit}
         className={cn(
-          "relative flex items-end gap-2 rounded-lg border bg-background",
+          "relative flex flex-col items-stretch gap-2 rounded-lg border bg-background",
           className,
         )}
         {...props}
@@ -138,6 +158,45 @@ export function PromptInputSubmit({
         <ArrowUp className="size-4" />
       )}
     </Button>
+  );
+}
+
+export function PromptInputCharacterCount({
+  className,
+}: {
+  className?: string;
+}) {
+  const context = usePromptInput();
+  const { value, maxLength, showCharacterCount } = context;
+
+  if (!maxLength || showCharacterCount === "never") {
+    return null;
+  }
+
+  const shouldShow =
+    showCharacterCount === "always" || value.length > maxLength * 0.8;
+
+  if (!shouldShow) {
+    return null;
+  }
+
+  const isNearLimit = value.length > maxLength * 0.9;
+  const isAtLimit = value.length >= maxLength;
+
+  return (
+    <span
+      className={cn(
+        "text-xs px-2 py-1",
+        isAtLimit
+          ? "text-destructive font-medium"
+          : isNearLimit
+            ? "text-warning"
+            : "text-muted-foreground",
+        className,
+      )}
+    >
+      {value.length}/{maxLength}
+    </span>
   );
 }
 
