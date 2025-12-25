@@ -1,3 +1,7 @@
+export const dynamic = "error";
+export const revalidate = false;
+export const fetchCache = "force-cache";
+
 import { Home } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

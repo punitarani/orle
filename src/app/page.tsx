@@ -1,3 +1,7 @@
+export const dynamic = "error";
+export const revalidate = false;
+export const fetchCache = "force-cache";
+
 import Link from "next/link";
 import { HomeOmnibox } from "@/components/home/home-omnibox";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";

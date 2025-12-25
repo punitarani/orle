@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSearch } from "@/components/layout/command-search";
 import {
@@ -36,10 +35,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const sidebarCookie = cookieStore.get("sidebar_state")?.value;
-  const defaultSidebarOpen =
-    sidebarCookie === undefined ? true : sidebarCookie === "true";
+  const defaultSidebarOpen = true;
 
   return (
     <html lang="en" suppressHydrationWarning>

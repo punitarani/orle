@@ -1,3 +1,7 @@
+export const dynamic = "error";
+export const revalidate = false;
+export const fetchCache = "force-cache";
+
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getToolMetaBySlug, TOOL_META } from "@/lib/tools/manifest";

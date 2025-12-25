@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Removed output: "export" to enable API routes for AI tool generation
-  // Static pages still work, but we can now have /api/* routes
+  // Keep API routes working but favor static output for pages
+  output: "standalone",
   reactCompiler: true,
+  poweredByHeader: false,
+  compress: true,
   images: {
     unoptimized: true,
   },

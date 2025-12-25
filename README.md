@@ -13,9 +13,14 @@ orle.dev is a browser-first collection of developer utilities for encoding, hash
 
 - Tool definitions live in `src/lib/tools/sections/` and are indexed in `src/lib/tools/registry.ts` for navigation and search.
 - Each tool runs client-side through a sandboxed transform executor in `src/lib/tools/safe-executor.ts`.
-- Tool pages are statically generated from the registry in `src/app/tools/[slug]/page.tsx` and rendered with shared tool UI components.
-- The custom tool generator at `src/app/tools/generate` calls AI endpoints in `src/app/api/tools/generate` and `src/app/api/tools/validate`, then saves tools to IndexedDB via `src/lib/tools/custom-tools-db.ts`.
+- App routes are SSG by default via `src/app/ssg-defaults.ts`; tool pages in `src/app/tools/[slug]/page.tsx` and the home page are fully pre-rendered for CDN caching.
+- Custom tools render from a single static page at `/tools/custom`, loading definitions from IndexedDB using a query param `?id=...`.
+- The AI tool generator at `/tools/generate` is the only dynamic page and calls `/api/tools/generate`, `/api/tools/validate`, and `/api/tools/agent` from the client; these API routes stay server-side.
 - A Raycast companion extension is available under `raycast/`.
+
+## Build & deploy notes
+
+- Run `npm run build` (or `bun run build`) to confirm all pages except `/tools/generate` are prerendered; API routes are excluded from SSG expectations.
 
 ## Contributing
 

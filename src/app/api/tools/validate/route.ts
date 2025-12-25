@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { generateText, Output } from "ai";
 import { createModel, VALIDATOR_MODEL } from "@/lib/ai/model";
 import {

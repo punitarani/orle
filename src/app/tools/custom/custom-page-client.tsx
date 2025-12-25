@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DualInput } from "@/components/tools/dual-input";
 import { ToolExamples } from "@/components/tools/tool-examples";
 import { ToolInput, type ToolInputRef } from "@/components/tools/tool-input";
@@ -43,7 +43,6 @@ import type {
 
 const DEBOUNCE_DELAY = 300;
 
-// Helper to convert null values to undefined for compatibility with existing types
 function toToolOptions(
   options: CustomToolDefinition["options"],
 ): ToolOption[] | undefined {
@@ -119,18 +118,29 @@ function OutputActions({
   );
 }
 
-export default function CustomToolPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function useQueryParam(name: string) {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setValue(sp.get(name));
+    };
+    update();
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
+  }, [name]);
+
+  return value;
+}
+
+export function CustomToolPageClient() {
+  const id = useQueryParam("id");
   const router = useRouter();
   const [tool, setTool] = useState<CustomToolDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFoundState, setNotFoundState] = useState(false);
 
-  // Tool state
   const [input, setInputState] = useState("");
   const [input2, setInput2State] = useState("");
   const [output, setOutput] = useState("");
@@ -143,7 +153,6 @@ export default function CustomToolPage({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const optionsRef = useRef<Record<string, unknown>>({});
 
-  // Keep optionsRef in sync
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
@@ -186,9 +195,14 @@ export default function CustomToolPage({
     [],
   );
 
-  // Load tool from IndexedDB
   useEffect(() => {
     async function loadTool() {
+      if (!id) {
+        setNotFoundState(true);
+        setLoading(false);
+        return;
+      }
+
       try {
         const loadedTool = await getCustomTool(id);
         if (!loadedTool) {
@@ -197,7 +211,6 @@ export default function CustomToolPage({
         }
         setTool(loadedTool);
 
-        // Initialize options with defaults
         const defaults: Record<string, unknown> = {};
         if (loadedTool.options) {
           for (const opt of loadedTool.options) {
@@ -207,7 +220,6 @@ export default function CustomToolPage({
         setOptions(defaults);
         optionsRef.current = defaults;
 
-        // Auto-run for generator tools
         if (loadedTool.inputType === "none") {
           runTransformWithTool(loadedTool, "", defaults);
         }
@@ -357,7 +369,6 @@ export default function CustomToolPage({
 
   return (
     <div className="flex flex-col h-[100vh] md:h-auto -m-6 md:m-0">
-      {/* Header - fixed on mobile */}
       <div className="shrink-0 border-b bg-background p-6 md:border-0 md:bg-transparent md:p-0 md:pb-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1 min-w-0 flex-1">
@@ -433,10 +444,8 @@ export default function CustomToolPage({
         </div>
       </div>
 
-      {/* Scrollable content on mobile */}
       <div className="flex-1 min-h-0 overflow-auto md:overflow-visible p-6 md:p-0">
         <div className="flex flex-col gap-6">
-          {/* Options */}
           {tool.options && tool.options.length > 0 && (
             <ToolOptions
               options={toToolOptions(tool.options) ?? []}
@@ -445,7 +454,6 @@ export default function CustomToolPage({
             />
           )}
 
-          {/* Dual Input for diff tools */}
           {tool.inputType === "dual" && (
             <>
               <DualInput
@@ -468,7 +476,6 @@ export default function CustomToolPage({
             </>
           )}
 
-          {/* Input/Output for non-dual tools */}
           {tool.inputType !== "dual" && tool.inputType !== "none" && (
             <div className="grid gap-6 md:grid-cols-2 md:items-start">
               <div className="flex flex-col gap-2">
@@ -523,7 +530,6 @@ export default function CustomToolPage({
             </div>
           )}
 
-          {/* Generator tools (no input) */}
           {tool.inputType === "none" && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -546,7 +552,6 @@ export default function CustomToolPage({
             </div>
           )}
 
-          {/* Examples */}
           {tool.examples && tool.examples.length > 0 && (
             <ToolExamples
               examples={toToolExamples(tool.examples) ?? []}

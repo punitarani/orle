@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import {
@@ -22,7 +25,7 @@ import {
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -451,10 +454,25 @@ function shouldShowTextMessage(text: string): boolean {
   return !PROGRESS_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
+function useQueryParam(name: string) {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setValue(sp.get(name));
+    };
+    update();
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
+  }, [name]);
+
+  return value;
+}
+
 export default function ToolGeneratePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const promptSeed = searchParams.get("prompt") ?? "";
+  const promptSeed = useQueryParam("prompt") ?? "";
   const isMobile = useIsMobile();
   const [lastValidTool, setLastValidTool] =
     useState<CustomToolDefinitionGenerated | null>(null);
@@ -609,7 +627,7 @@ export default function ToolGeneratePage() {
       };
 
       await saveCustomTool(fullTool);
-      router.push(`/tools/custom/${fullTool.id}`);
+      router.push(`/tools/custom?id=${fullTool.id}`);
     } catch (e) {
       console.error("Failed to save tool:", e);
     } finally {

@@ -78,6 +78,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [customTools, setCustomTools] = useState<CustomToolDefinition[]>([]);
+  const [activeCustomId, setActiveCustomId] = useState<string | null>(null);
 
   // Load custom tools from IndexedDB
   useEffect(() => {
@@ -94,7 +95,17 @@ export function AppSidebar() {
     // Refresh when navigating to/from custom tools
     const handleFocus = () => loadCustomTools();
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+    const handlePopState = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setActiveCustomId(sp.get("id"));
+    };
+    handlePopState();
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   const handleDeleteCustomTool = async (
@@ -105,13 +116,13 @@ export function AppSidebar() {
     e.stopPropagation();
     await deleteCustomTool(toolId);
     setCustomTools((prev) => prev.filter((t) => t.id !== toolId));
-    if (pathname === `/tools/custom/${toolId}`) {
+    if (pathname === "/tools/custom" && activeCustomId === toolId) {
       router.push("/");
     }
   };
 
   const _isCustomSectionActive =
-    pathname.startsWith("/tools/custom/") || pathname === "/tools/generate";
+    pathname === "/tools/custom" || pathname === "/tools/generate";
 
   return (
     <Sidebar>
@@ -170,7 +181,8 @@ export function AppSidebar() {
                     {/* Custom Tools List */}
                     {customTools.map((tool) => {
                       const isToolActive =
-                        pathname === `/tools/custom/${tool.id}`;
+                        pathname === "/tools/custom" &&
+                        activeCustomId === tool.id;
                       return (
                         <SidebarMenuSubItem
                           key={tool.id}
@@ -182,7 +194,7 @@ export function AppSidebar() {
                             size="sm"
                           >
                             <Link
-                              href={`/tools/custom/${tool.id}`}
+                              href={`/tools/custom?id=${tool.id}`}
                               prefetch={false}
                             >
                               {tool.name}

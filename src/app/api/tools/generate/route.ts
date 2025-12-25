@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { Output, streamText } from "ai";
 import { createModel, GENERATOR_MODEL } from "@/lib/ai/model";
 import { customToolDefinitionSchema } from "@/lib/tools/types";

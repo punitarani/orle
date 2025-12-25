@@ -1,16 +1,32 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { ToolPage } from "@/components/tools/tool-page";
 import { getToolMetaBySlug } from "@/lib/tools/manifest";
 import { loadToolRuntime } from "@/lib/tools/runtime";
 import type { ToolDefinition } from "@/lib/tools/types";
 
-export function ToolPageClient({ slug }: { slug: string }) {
+function useQueryParam(name: string) {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const sp = new URLSearchParams(window.location.search);
+      setValue(sp.get(name));
+    };
+    update();
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
+  }, [name]);
+
+  return value;
+}
+
+function ToolPageClientInner({ slug }: { slug: string }) {
   const [tool, setTool] = useState<ToolDefinition | null>(null);
   const toolMeta = getToolMetaBySlug(slug);
-  const searchParams = useSearchParams();
+  const inputParam = useQueryParam("input");
+  const optionsParam = useQueryParam("options");
 
   useEffect(() => {
     let active = true;
@@ -26,7 +42,6 @@ export function ToolPageClient({ slug }: { slug: string }) {
 
   // Parse initial values from URL params (for Raycast "Open in orle.dev" action)
   const initialInput = useMemo(() => {
-    const inputParam = searchParams.get("input");
     if (!inputParam) return undefined;
 
     try {
@@ -34,10 +49,9 @@ export function ToolPageClient({ slug }: { slug: string }) {
     } catch {
       return inputParam;
     }
-  }, [searchParams]);
+  }, [inputParam]);
 
   const initialOptions = useMemo(() => {
-    const optionsParam = searchParams.get("options");
     if (!optionsParam) return undefined;
 
     try {
@@ -45,7 +59,7 @@ export function ToolPageClient({ slug }: { slug: string }) {
     } catch {
       return undefined;
     }
-  }, [searchParams]);
+  }, [optionsParam]);
 
   const mergedOptions = useMemo(() => {
     if (!toolMeta?.presetOptions) return initialOptions;
@@ -75,5 +89,19 @@ export function ToolPageClient({ slug }: { slug: string }) {
       initialOptions={mergedOptions}
       showHeader={false}
     />
+  );
+}
+
+export function ToolPageClient({ slug }: { slug: string }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      }
+    >
+      <ToolPageClientInner slug={slug} />
+    </Suspense>
   );
 }
