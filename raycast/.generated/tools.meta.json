@@ -1,0 +1,2397 @@
+[
+  {
+    "slug": "encoding-suite",
+    "name": "URL & Encoding Suite",
+    "description": "URL, HTML, Unicode, and query helpers",
+    "section": "encoding",
+    "aliases": [
+      "url",
+      "html",
+      "unicode",
+      "punycode"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "url-encode",
+        "options": [
+          {
+            "value": "url-encode",
+            "label": "URL encode"
+          },
+          {
+            "value": "url-decode",
+            "label": "URL decode"
+          },
+          {
+            "value": "query-parse",
+            "label": "Querystring → JSON"
+          },
+          {
+            "value": "query-build",
+            "label": "JSON → Querystring"
+          },
+          {
+            "value": "html-encode",
+            "label": "HTML entities encode"
+          },
+          {
+            "value": "html-decode",
+            "label": "HTML entities decode"
+          },
+          {
+            "value": "unicode-normalize",
+            "label": "Unicode normalize"
+          },
+          {
+            "value": "punycode-encode",
+            "label": "Punycode encode"
+          },
+          {
+            "value": "punycode-decode",
+            "label": "Punycode decode"
+          },
+          {
+            "value": "rot13",
+            "label": "ROT13"
+          }
+        ]
+      },
+      {
+        "id": "normalizeForm",
+        "label": "Normalize form",
+        "type": "select",
+        "default": "NFC",
+        "options": [
+          {
+            "value": "NFC",
+            "label": "NFC"
+          },
+          {
+            "value": "NFD",
+            "label": "NFD"
+          },
+          {
+            "value": "NFKC",
+            "label": "NFKC"
+          },
+          {
+            "value": "NFKD",
+            "label": "NFKD"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "unicode-normalize"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "text-suite",
+    "name": "Text Transform Suite",
+    "description": "Case conversion, sorting, filtering, regex, and more",
+    "section": "text",
+    "aliases": [
+      "case",
+      "lines",
+      "regex",
+      "slug"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "case",
+        "options": [
+          {
+            "value": "case",
+            "label": "Case convert"
+          },
+          {
+            "value": "trim",
+            "label": "Trim / normalize whitespace"
+          },
+          {
+            "value": "sort",
+            "label": "Sort lines"
+          },
+          {
+            "value": "unique",
+            "label": "Unique lines"
+          },
+          {
+            "value": "remove-empty",
+            "label": "Remove empty lines"
+          },
+          {
+            "value": "prefix",
+            "label": "Add prefix/suffix"
+          },
+          {
+            "value": "wrap",
+            "label": "Wrap lines"
+          },
+          {
+            "value": "reverse",
+            "label": "Reverse text/lines"
+          },
+          {
+            "value": "extract",
+            "label": "Extract lines containing"
+          },
+          {
+            "value": "regex-replace",
+            "label": "Regex replace"
+          },
+          {
+            "value": "regex-match",
+            "label": "Regex match extractor"
+          },
+          {
+            "value": "slugify",
+            "label": "Slugify"
+          }
+        ]
+      },
+      {
+        "id": "caseStyle",
+        "label": "Case style",
+        "type": "select",
+        "default": "lower",
+        "options": [
+          {
+            "value": "lower",
+            "label": "lower"
+          },
+          {
+            "value": "upper",
+            "label": "UPPER"
+          },
+          {
+            "value": "title",
+            "label": "Title"
+          },
+          {
+            "value": "snake",
+            "label": "snake_case"
+          },
+          {
+            "value": "kebab",
+            "label": "kebab-case"
+          },
+          {
+            "value": "camel",
+            "label": "camelCase"
+          },
+          {
+            "value": "pascal",
+            "label": "PascalCase"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "case"
+        }
+      },
+      {
+        "id": "sortOrder",
+        "label": "Sort order",
+        "type": "select",
+        "default": "asc",
+        "options": [
+          {
+            "value": "asc",
+            "label": "Ascending"
+          },
+          {
+            "value": "desc",
+            "label": "Descending"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "sort"
+        }
+      },
+      {
+        "id": "sortNumeric",
+        "label": "Numeric sort",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "sort"
+        }
+      },
+      {
+        "id": "prefixValue",
+        "label": "Prefix",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "prefix"
+        }
+      },
+      {
+        "id": "suffixValue",
+        "label": "Suffix",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "prefix"
+        }
+      },
+      {
+        "id": "wrapWidth",
+        "label": "Wrap width",
+        "type": "number",
+        "default": 80,
+        "min": 10,
+        "max": 200,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "wrap"
+        }
+      },
+      {
+        "id": "reverseMode",
+        "label": "Reverse",
+        "type": "select",
+        "default": "lines",
+        "options": [
+          {
+            "value": "lines",
+            "label": "Line order"
+          },
+          {
+            "value": "text",
+            "label": "Text characters"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "reverse"
+        }
+      },
+      {
+        "id": "extractNeedle",
+        "label": "Contains",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "extract"
+        }
+      },
+      {
+        "id": "regexPattern",
+        "label": "Regex pattern",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": [
+            "regex-replace",
+            "regex-match"
+          ]
+        }
+      },
+      {
+        "id": "regexFlags",
+        "label": "Regex flags",
+        "type": "text",
+        "default": "g",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": [
+            "regex-replace",
+            "regex-match"
+          ]
+        }
+      },
+      {
+        "id": "regexReplacement",
+        "label": "Replacement",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "regex-replace"
+        }
+      },
+      {
+        "id": "slugifyLower",
+        "label": "Lowercase",
+        "type": "toggle",
+        "default": true,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "slugify"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "data-format-suite",
+    "name": "Data Format Suite",
+    "description": "Format, validate, and convert JSON/YAML/XML/CSV",
+    "section": "formats",
+    "aliases": [
+      "json",
+      "yaml",
+      "xml",
+      "csv",
+      "toml"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "json-format",
+        "options": [
+          {
+            "value": "json-format",
+            "label": "JSON format"
+          },
+          {
+            "value": "json-minify",
+            "label": "JSON minify"
+          },
+          {
+            "value": "json-validate",
+            "label": "JSON validate"
+          },
+          {
+            "value": "json-to-yaml",
+            "label": "JSON → YAML"
+          },
+          {
+            "value": "yaml-to-json",
+            "label": "YAML → JSON"
+          },
+          {
+            "value": "json-to-toml",
+            "label": "JSON → TOML"
+          },
+          {
+            "value": "toml-to-json",
+            "label": "TOML → JSON"
+          },
+          {
+            "value": "json-to-csv",
+            "label": "JSON → CSV"
+          },
+          {
+            "value": "csv-to-json",
+            "label": "CSV → JSON"
+          },
+          {
+            "value": "json-to-xml",
+            "label": "JSON → XML"
+          },
+          {
+            "value": "xml-to-json",
+            "label": "XML → JSON"
+          },
+          {
+            "value": "json-path",
+            "label": "JSONPath query"
+          },
+          {
+            "value": "json-pointer",
+            "label": "JSON Pointer"
+          },
+          {
+            "value": "sort-keys",
+            "label": "Sort JSON keys"
+          },
+          {
+            "value": "remove-null",
+            "label": "Remove null/empty"
+          }
+        ]
+      },
+      {
+        "id": "indent",
+        "label": "Indent",
+        "type": "number",
+        "default": 2,
+        "min": 0,
+        "max": 8,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "json-format"
+        }
+      },
+      {
+        "id": "csvDelimiter",
+        "label": "CSV delimiter",
+        "type": "text",
+        "default": ",",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": [
+            "json-to-csv",
+            "csv-to-json"
+          ]
+        }
+      },
+      {
+        "id": "csvHeader",
+        "label": "Include header",
+        "type": "toggle",
+        "default": true,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "json-to-csv"
+        }
+      },
+      {
+        "id": "jsonPath",
+        "label": "JSONPath",
+        "type": "text",
+        "default": "$.",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "json-path"
+        }
+      },
+      {
+        "id": "jsonPointer",
+        "label": "JSON Pointer",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "json-pointer"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "diff-suite",
+    "name": "Diff & Compare Suite",
+    "description": "Text, JSON, and structural diffs",
+    "section": "diff",
+    "aliases": [
+      "diff",
+      "compare",
+      "patch"
+    ],
+    "inputType": "dual",
+    "outputType": "diff",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "text-diff",
+        "options": [
+          {
+            "value": "text-diff",
+            "label": "Text diff"
+          },
+          {
+            "value": "unified-diff",
+            "label": "Unified diff"
+          },
+          {
+            "value": "apply-patch",
+            "label": "Apply unified patch"
+          },
+          {
+            "value": "json-diff",
+            "label": "JSON diff"
+          },
+          {
+            "value": "string-similarity",
+            "label": "String similarity"
+          }
+        ]
+      },
+      {
+        "id": "diffMode",
+        "label": "Text diff mode",
+        "type": "select",
+        "default": "lines",
+        "options": [
+          {
+            "value": "lines",
+            "label": "Line by line"
+          },
+          {
+            "value": "words",
+            "label": "Word by word"
+          },
+          {
+            "value": "chars",
+            "label": "Character by character"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "text-diff"
+        }
+      },
+      {
+        "id": "ignoreWhitespace",
+        "label": "Ignore whitespace",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "text-diff"
+        }
+      },
+      {
+        "id": "ignoreCase",
+        "label": "Ignore case",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "text-diff"
+        }
+      },
+      {
+        "id": "filename1",
+        "label": "File 1 name",
+        "type": "text",
+        "default": "original.txt",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "unified-diff"
+        }
+      },
+      {
+        "id": "filename2",
+        "label": "File 2 name",
+        "type": "text",
+        "default": "modified.txt",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "unified-diff"
+        }
+      },
+      {
+        "id": "context",
+        "label": "Context lines",
+        "type": "number",
+        "default": 3,
+        "min": 0,
+        "max": 10,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "unified-diff"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "id-suite",
+    "name": "ID & Token Suite",
+    "description": "Generate, validate, and inspect common ID formats",
+    "section": "ids",
+    "aliases": [
+      "uuid",
+      "ulid",
+      "nanoid",
+      "cuid2",
+      "ksuid"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "uuid-generate",
+        "options": [
+          {
+            "value": "uuid-generate",
+            "label": "UUID generate"
+          },
+          {
+            "value": "uuid-validate",
+            "label": "UUID validate"
+          },
+          {
+            "value": "uuid-parse",
+            "label": "UUID parse"
+          },
+          {
+            "value": "ulid-generate",
+            "label": "ULID generate"
+          },
+          {
+            "value": "ulid-parse",
+            "label": "ULID parse"
+          },
+          {
+            "value": "nanoid-generate",
+            "label": "NanoID generate"
+          },
+          {
+            "value": "cuid2-generate",
+            "label": "CUID2 generate"
+          },
+          {
+            "value": "ksuid-generate",
+            "label": "KSUID generate"
+          },
+          {
+            "value": "snowflake-generate",
+            "label": "Snowflake-like generate"
+          },
+          {
+            "value": "random-string",
+            "label": "Secure random string"
+          },
+          {
+            "value": "detect-id",
+            "label": "Detect / validate ID"
+          }
+        ]
+      },
+      {
+        "id": "uuidVersion",
+        "label": "UUID version",
+        "type": "select",
+        "default": "4",
+        "options": [
+          {
+            "value": "1",
+            "label": "v1"
+          },
+          {
+            "value": "3",
+            "label": "v3"
+          },
+          {
+            "value": "4",
+            "label": "v4"
+          },
+          {
+            "value": "5",
+            "label": "v5"
+          },
+          {
+            "value": "6",
+            "label": "v6"
+          },
+          {
+            "value": "7",
+            "label": "v7"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "uuid-generate"
+        }
+      },
+      {
+        "id": "uuidNamespace",
+        "label": "UUID namespace",
+        "type": "select",
+        "default": "dns",
+        "options": [
+          {
+            "value": "dns",
+            "label": "DNS"
+          },
+          {
+            "value": "url",
+            "label": "URL"
+          },
+          {
+            "value": "custom",
+            "label": "Custom"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "uuidVersion",
+          "equals": [
+            "3",
+            "5"
+          ]
+        }
+      },
+      {
+        "id": "uuidNamespaceCustom",
+        "label": "Custom namespace UUID",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "uuidNamespace",
+          "equals": "custom"
+        }
+      },
+      {
+        "id": "uuidName",
+        "label": "Name",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "uuidVersion",
+          "equals": [
+            "3",
+            "5"
+          ]
+        }
+      },
+      {
+        "id": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 1,
+        "min": 1,
+        "max": 100,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": [
+            "uuid-generate",
+            "ulid-generate",
+            "nanoid-generate",
+            "cuid2-generate",
+            "ksuid-generate",
+            "snowflake-generate",
+            "random-string"
+          ]
+        }
+      },
+      {
+        "id": "uppercase",
+        "label": "Uppercase",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "uuid-generate"
+        }
+      },
+      {
+        "id": "noDashes",
+        "label": "No dashes",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "uuid-generate"
+        }
+      },
+      {
+        "id": "braces",
+        "label": "With braces {}",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "uuid-generate"
+        }
+      },
+      {
+        "id": "ulidLowercase",
+        "label": "Lowercase",
+        "type": "toggle",
+        "default": false,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "ulid-generate"
+        }
+      },
+      {
+        "id": "nanoidLength",
+        "label": "NanoID length",
+        "type": "number",
+        "default": 21,
+        "min": 2,
+        "max": 64,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "nanoid-generate"
+        }
+      },
+      {
+        "id": "nanoidAlphabet",
+        "label": "NanoID alphabet",
+        "type": "select",
+        "default": "default",
+        "options": [
+          {
+            "value": "default",
+            "label": "Default"
+          },
+          {
+            "value": "alphanumeric",
+            "label": "Alphanumeric"
+          },
+          {
+            "value": "lowercase",
+            "label": "Lowercase"
+          },
+          {
+            "value": "numbers",
+            "label": "Numbers"
+          },
+          {
+            "value": "hex",
+            "label": "Hex"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "nanoid-generate"
+        }
+      },
+      {
+        "id": "randomLength",
+        "label": "Random length",
+        "type": "number",
+        "default": 32,
+        "min": 4,
+        "max": 256,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "random-string"
+        }
+      },
+      {
+        "id": "randomAlphabet",
+        "label": "Random alphabet",
+        "type": "text",
+        "default": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "random-string"
+        }
+      },
+      {
+        "id": "snowflakeWorker",
+        "label": "Snowflake worker id",
+        "type": "number",
+        "default": 1,
+        "min": 0,
+        "max": 1023,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "snowflake-generate"
+        }
+      },
+      {
+        "id": "snowflakeEpoch",
+        "label": "Epoch (ms)",
+        "type": "number",
+        "default": 1288834974657,
+        "min": 0,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "snowflake-generate"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "datetime-suite",
+    "name": "Date & Time Suite",
+    "description": "Epoch, duration, timezone, and cron helpers",
+    "section": "datetime",
+    "aliases": [
+      "epoch",
+      "timestamp",
+      "timezone"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "epoch-iso",
+        "options": [
+          {
+            "value": "epoch-iso",
+            "label": "Epoch ↔ ISO"
+          },
+          {
+            "value": "duration-add",
+            "label": "Add/subtract duration"
+          },
+          {
+            "value": "duration-parse",
+            "label": "Parse duration"
+          },
+          {
+            "value": "timezone",
+            "label": "Timezone convert"
+          },
+          {
+            "value": "relative",
+            "label": "Relative time"
+          },
+          {
+            "value": "cron",
+            "label": "Cron explain"
+          }
+        ]
+      },
+      {
+        "id": "duration",
+        "label": "Duration (e.g. 1h 2m)",
+        "type": "text",
+        "default": "1h",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "duration-add"
+        }
+      },
+      {
+        "id": "direction",
+        "label": "Direction",
+        "type": "select",
+        "default": "add",
+        "options": [
+          {
+            "value": "add",
+            "label": "Add"
+          },
+          {
+            "value": "subtract",
+            "label": "Subtract"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "duration-add"
+        }
+      },
+      {
+        "id": "fromTz",
+        "label": "From TZ (IANA)",
+        "type": "text",
+        "default": "UTC",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "timezone"
+        }
+      },
+      {
+        "id": "toTz",
+        "label": "To TZ (IANA)",
+        "type": "text",
+        "default": "UTC",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "timezone"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "numbers-suite",
+    "name": "Numbers & Bits Suite",
+    "description": "Base convert, byte sizes, IP utilities",
+    "section": "numbers",
+    "aliases": [
+      "base",
+      "ip",
+      "cidr",
+      "crc"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "base-convert",
+        "options": [
+          {
+            "value": "base-convert",
+            "label": "Base converter"
+          },
+          {
+            "value": "bitwise",
+            "label": "Bitwise calculator"
+          },
+          {
+            "value": "humanize-bytes",
+            "label": "Humanize bytes"
+          },
+          {
+            "value": "parse-bytes",
+            "label": "Parse bytes"
+          },
+          {
+            "value": "ipv4",
+            "label": "IPv4 ↔ int"
+          },
+          {
+            "value": "cidr",
+            "label": "CIDR calculator"
+          },
+          {
+            "value": "ipv6",
+            "label": "IPv6 expand/compress"
+          },
+          {
+            "value": "crc32",
+            "label": "CRC32 checksum"
+          }
+        ]
+      },
+      {
+        "id": "fromBase",
+        "label": "From base",
+        "type": "number",
+        "default": 10,
+        "min": 2,
+        "max": 36,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "base-convert"
+        }
+      },
+      {
+        "id": "toBase",
+        "label": "To base",
+        "type": "number",
+        "default": 16,
+        "min": 2,
+        "max": 36,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "base-convert"
+        }
+      },
+      {
+        "id": "bitwiseOp",
+        "label": "Operation",
+        "type": "select",
+        "default": "and",
+        "options": [
+          {
+            "value": "and",
+            "label": "AND"
+          },
+          {
+            "value": "or",
+            "label": "OR"
+          },
+          {
+            "value": "xor",
+            "label": "XOR"
+          },
+          {
+            "value": "not",
+            "label": "NOT"
+          },
+          {
+            "value": "lshift",
+            "label": "Left shift"
+          },
+          {
+            "value": "rshift",
+            "label": "Right shift"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "bitwise"
+        }
+      },
+      {
+        "id": "bitwiseValue",
+        "label": "Second value",
+        "type": "number",
+        "default": 0,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "bitwise"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "http-suite",
+    "name": "HTTP Helper Suite",
+    "description": "Headers, cURL, auth, and URL utilities",
+    "section": "http",
+    "aliases": [
+      "curl",
+      "headers",
+      "auth"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "headers-to-json",
+        "options": [
+          {
+            "value": "headers-to-json",
+            "label": "Headers → JSON"
+          },
+          {
+            "value": "json-to-headers",
+            "label": "JSON → Headers"
+          },
+          {
+            "value": "curl-build",
+            "label": "Build cURL"
+          },
+          {
+            "value": "curl-parse",
+            "label": "Parse cURL"
+          },
+          {
+            "value": "basic-auth",
+            "label": "Basic auth"
+          },
+          {
+            "value": "url-build",
+            "label": "URL builder"
+          },
+          {
+            "value": "mime",
+            "label": "MIME lookup"
+          }
+        ]
+      },
+      {
+        "id": "method",
+        "label": "Method",
+        "type": "select",
+        "default": "GET",
+        "options": [
+          {
+            "value": "GET",
+            "label": "GET"
+          },
+          {
+            "value": "POST",
+            "label": "POST"
+          },
+          {
+            "value": "PUT",
+            "label": "PUT"
+          },
+          {
+            "value": "DELETE",
+            "label": "DELETE"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "curl-build"
+        }
+      },
+      {
+        "id": "url",
+        "label": "URL",
+        "type": "text",
+        "default": "https://example.com",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "curl-build"
+        }
+      },
+      {
+        "id": "body",
+        "label": "Body",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "curl-build"
+        }
+      },
+      {
+        "id": "username",
+        "label": "Username",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "basic-auth"
+        }
+      },
+      {
+        "id": "password",
+        "label": "Password",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "basic-auth"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "color-suite",
+    "name": "Color & CSS Suite",
+    "description": "Convert colors, compute contrast, generate palettes",
+    "section": "colors",
+    "aliases": [
+      "color",
+      "contrast",
+      "css"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "color-convert",
+        "options": [
+          {
+            "value": "color-convert",
+            "label": "Convert color"
+          },
+          {
+            "value": "contrast",
+            "label": "Contrast ratio"
+          },
+          {
+            "value": "lighten",
+            "label": "Lighten/Darken"
+          },
+          {
+            "value": "accessible-text",
+            "label": "Accessible text color"
+          },
+          {
+            "value": "blend",
+            "label": "Alpha blend"
+          }
+        ]
+      },
+      {
+        "id": "color2",
+        "label": "Second color",
+        "type": "text",
+        "default": "#ffffff",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": [
+            "contrast",
+            "blend"
+          ]
+        }
+      },
+      {
+        "id": "amount",
+        "label": "Amount (0-1)",
+        "type": "number",
+        "default": 0.1,
+        "min": -1,
+        "max": 1,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "lighten"
+        }
+      },
+      {
+        "id": "minContrast",
+        "label": "Min contrast",
+        "type": "number",
+        "default": 4.5,
+        "min": 1,
+        "max": 21,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "accessible-text"
+        }
+      },
+      {
+        "id": "blendAlpha",
+        "label": "Overlay alpha (0-1)",
+        "type": "number",
+        "default": 0.5,
+        "min": 0,
+        "max": 1,
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "blend"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "code-suite",
+    "name": "Code Cleanup Suite",
+    "description": "Format, minify, and escape code",
+    "section": "code",
+    "aliases": [
+      "format",
+      "prettier",
+      "minify",
+      "sql"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "format",
+        "options": [
+          {
+            "value": "format",
+            "label": "Prettier format"
+          },
+          {
+            "value": "minify",
+            "label": "Minify JS"
+          },
+          {
+            "value": "sql",
+            "label": "Format SQL"
+          },
+          {
+            "value": "escape",
+            "label": "Escape JS"
+          },
+          {
+            "value": "unescape",
+            "label": "Unescape JS"
+          }
+        ]
+      },
+      {
+        "id": "language",
+        "label": "Language",
+        "type": "select",
+        "default": "javascript",
+        "options": [
+          {
+            "value": "javascript",
+            "label": "JavaScript"
+          },
+          {
+            "value": "typescript",
+            "label": "TypeScript"
+          },
+          {
+            "value": "html",
+            "label": "HTML"
+          },
+          {
+            "value": "css",
+            "label": "CSS"
+          },
+          {
+            "value": "markdown",
+            "label": "Markdown"
+          }
+        ],
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "format"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "regex-suite",
+    "name": "Regex Suite",
+    "description": "Test, replace, and extract with regex",
+    "section": "regex",
+    "aliases": [
+      "regex",
+      "regexp"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "match",
+        "options": [
+          {
+            "value": "match",
+            "label": "Match tester"
+          },
+          {
+            "value": "replace",
+            "label": "Replace"
+          },
+          {
+            "value": "extract",
+            "label": "Extract matches"
+          },
+          {
+            "value": "explain",
+            "label": "Explain pattern"
+          }
+        ]
+      },
+      {
+        "id": "pattern",
+        "label": "Pattern",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "flags",
+        "label": "Flags",
+        "type": "text",
+        "default": "g"
+      },
+      {
+        "id": "replacement",
+        "label": "Replacement",
+        "type": "text",
+        "default": "",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "replace"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "data-extract-suite",
+    "name": "Data Extraction Suite",
+    "description": "Extract emails, URLs, IPs, and key/value pairs",
+    "section": "data",
+    "aliases": [
+      "extract",
+      "emails",
+      "urls"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "emails",
+        "options": [
+          {
+            "value": "emails",
+            "label": "Extract emails"
+          },
+          {
+            "value": "urls",
+            "label": "Extract URLs"
+          },
+          {
+            "value": "ips",
+            "label": "Extract IPs"
+          },
+          {
+            "value": "keyvalue",
+            "label": "Extract key=value"
+          },
+          {
+            "value": "json",
+            "label": "Extract JSON"
+          },
+          {
+            "value": "grok",
+            "label": "Grok-like pattern"
+          }
+        ]
+      },
+      {
+        "id": "grokPattern",
+        "label": "Pattern",
+        "type": "text",
+        "default": "%{IP:ip} %{WORD:method} %{URIPATHPARAM:path}",
+        "visibleWhen": {
+          "optionId": "mode",
+          "equals": "grok"
+        }
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "markdown-suite",
+    "name": "Markdown & Docs Suite",
+    "description": "Convert and format Markdown/HTML",
+    "section": "markdown",
+    "aliases": [
+      "markdown",
+      "md",
+      "html"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "mode",
+        "label": "Mode",
+        "type": "select",
+        "default": "md-to-html",
+        "options": [
+          {
+            "value": "md-to-html",
+            "label": "Markdown → HTML"
+          },
+          {
+            "value": "html-to-md",
+            "label": "HTML → Markdown"
+          },
+          {
+            "value": "md-table",
+            "label": "Markdown table format"
+          }
+        ]
+      }
+    ],
+    "runPolicy": "manual",
+    "acceptsFile": false
+  },
+  {
+    "slug": "uuid-generator",
+    "name": "UUID Generator",
+    "description": "Generate UUIDs (v4 by default)",
+    "section": "ids",
+    "aliases": [
+      "uuid",
+      "guid",
+      "uuid4"
+    ],
+    "inputType": "none",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "uuid-generate",
+      "uuidVersion": "4"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "uuid-validate",
+    "name": "UUID Validator",
+    "description": "Validate UUIDs and show version",
+    "section": "ids",
+    "aliases": [
+      "uuid-validate",
+      "uuid-check"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "uuid-validate"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "uuid-parse",
+    "name": "UUID Parser",
+    "description": "Inspect UUID version and timestamps",
+    "section": "ids",
+    "aliases": [
+      "uuid-parse",
+      "uuid-info"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "uuid-parse"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "uuid-v7",
+    "name": "UUID v7 Generator",
+    "description": "Generate time-sortable UUID v7 identifiers",
+    "section": "ids",
+    "aliases": [
+      "uuid7",
+      "uuid-v7"
+    ],
+    "inputType": "none",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "uuid-generate",
+      "uuidVersion": "7"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "ulid-generator",
+    "name": "ULID Generator",
+    "description": "Generate sortable ULID identifiers",
+    "section": "ids",
+    "aliases": [
+      "ulid",
+      "sortable-id"
+    ],
+    "inputType": "none",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "ulid-generate"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "ulid-parse",
+    "name": "ULID Parser",
+    "description": "Inspect ULID timestamps",
+    "section": "ids",
+    "aliases": [
+      "ulid-parse",
+      "ulid-info"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "ulid-parse"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "nanoid-generator",
+    "name": "NanoID Generator",
+    "description": "Generate compact NanoID identifiers",
+    "section": "ids",
+    "aliases": [
+      "nanoid",
+      "short-id"
+    ],
+    "inputType": "none",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "nanoid-generate"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "random-string",
+    "name": "Random String Generator",
+    "description": "Generate secure random strings",
+    "section": "ids",
+    "aliases": [
+      "token",
+      "random"
+    ],
+    "inputType": "none",
+    "outputType": "text",
+    "canonicalSlug": "id-suite",
+    "presetOptions": {
+      "mode": "random-string"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "base64-text",
+    "name": "Base64 Encode (Text)",
+    "description": "Encode UTF-8 text to Base64",
+    "section": "base64",
+    "aliases": [
+      "base64",
+      "btoa"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "base64-text"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "base64-decode",
+    "name": "Base64 Decode (Text)",
+    "description": "Decode Base64 into UTF-8 text",
+    "section": "base64",
+    "aliases": [
+      "base64-decode",
+      "atob"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "base64-decode"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "base64url-encode",
+    "name": "Base64URL Encode",
+    "description": "Encode text into URL-safe Base64",
+    "section": "base64",
+    "aliases": [
+      "base64url",
+      "base64-url"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "base64url-text"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "base64-download",
+    "name": "Base64 to File Download",
+    "description": "Decode Base64 and download a file",
+    "section": "base64",
+    "aliases": [
+      "base64-file",
+      "base64-download"
+    ],
+    "inputType": "text",
+    "outputType": "preview",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "base64-to-file"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "hex-encode",
+    "name": "Hex Encode",
+    "description": "Encode text as hex bytes",
+    "section": "base64",
+    "aliases": [
+      "hex",
+      "hex-encode"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "hex-text"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "hex-decode",
+    "name": "Hex Decode",
+    "description": "Decode hex to text",
+    "section": "base64",
+    "aliases": [
+      "hex-decode"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "hex-decode"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "data-url-inspector",
+    "name": "Data URL Inspector",
+    "description": "Inspect data: URLs and payload sizes",
+    "section": "base64",
+    "aliases": [
+      "data-url"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "bytes-suite",
+    "presetOptions": {
+      "mode": "data-url"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "hash-text",
+    "name": "Hash Generator (Text)",
+    "description": "Generate hashes for text input",
+    "section": "crypto",
+    "aliases": [
+      "sha256",
+      "sha512",
+      "md5",
+      "checksum"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "hash-text"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "sha256-hash",
+    "name": "SHA-256 Hash",
+    "description": "Generate SHA-256 for text input",
+    "section": "crypto",
+    "aliases": [
+      "sha256",
+      "hash"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "hash-text",
+      "algorithm": "SHA-256"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "hmac-generator",
+    "name": "HMAC Generator",
+    "description": "Generate HMAC signatures",
+    "section": "crypto",
+    "aliases": [
+      "hmac",
+      "signature"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "hmac"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "pbkdf2-derive",
+    "name": "PBKDF2 Key Derivation",
+    "description": "Derive keys with PBKDF2",
+    "section": "crypto",
+    "aliases": [
+      "pbkdf2",
+      "derive-key"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "pbkdf2"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "aes-gcm-encrypt",
+    "name": "AES-GCM Encrypt",
+    "description": "Encrypt text with AES-GCM",
+    "section": "crypto",
+    "aliases": [
+      "aes",
+      "encrypt"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "aes-encrypt"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "jwt-decode",
+    "name": "JWT Decode",
+    "description": "Decode JWT header and payload",
+    "section": "crypto",
+    "aliases": [
+      "jwt",
+      "token"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "crypto-suite",
+    "presetOptions": {
+      "mode": "jwt-decode"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "url-encode",
+    "name": "URL Encode",
+    "description": "Encode URL components",
+    "section": "encoding",
+    "aliases": [
+      "uri",
+      "percent-encode"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "encoding-suite",
+    "presetOptions": {
+      "mode": "url-encode"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "query-parse",
+    "name": "Querystring Parser",
+    "description": "Parse querystrings into JSON",
+    "section": "encoding",
+    "aliases": [
+      "querystring",
+      "qs-parse"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "encoding-suite",
+    "presetOptions": {
+      "mode": "query-parse"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "html-encode",
+    "name": "HTML Entities Encode",
+    "description": "Encode text into HTML entities",
+    "section": "encoding",
+    "aliases": [
+      "html-encode",
+      "entities"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "encoding-suite",
+    "presetOptions": {
+      "mode": "html-encode"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "unicode-normalize",
+    "name": "Unicode Normalize",
+    "description": "Normalize Unicode strings",
+    "section": "encoding",
+    "aliases": [
+      "unicode",
+      "normalize"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "encoding-suite",
+    "presetOptions": {
+      "mode": "unicode-normalize"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "json-format",
+    "name": "JSON Formatter",
+    "description": "Pretty print JSON",
+    "section": "formats",
+    "aliases": [
+      "json",
+      "format-json"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-format-suite",
+    "presetOptions": {
+      "mode": "json-format"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "json-minify",
+    "name": "JSON Minifier",
+    "description": "Minify JSON strings",
+    "section": "formats",
+    "aliases": [
+      "json-minify"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-format-suite",
+    "presetOptions": {
+      "mode": "json-minify"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "yaml-to-json",
+    "name": "YAML to JSON",
+    "description": "Convert YAML into JSON",
+    "section": "formats",
+    "aliases": [
+      "yaml",
+      "yaml-to-json"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-format-suite",
+    "presetOptions": {
+      "mode": "yaml-to-json"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "csv-to-json",
+    "name": "CSV to JSON",
+    "description": "Convert CSV into JSON",
+    "section": "formats",
+    "aliases": [
+      "csv",
+      "csv-json"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-format-suite",
+    "presetOptions": {
+      "mode": "csv-to-json"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "text-diff",
+    "name": "Text Diff",
+    "description": "Compare two texts and show differences",
+    "section": "diff",
+    "aliases": [
+      "compare",
+      "diff",
+      "changes"
+    ],
+    "inputType": "dual",
+    "outputType": "diff",
+    "canonicalSlug": "diff-suite",
+    "presetOptions": {
+      "mode": "text-diff"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "unified-diff",
+    "name": "Unified Diff",
+    "description": "Generate unified diff patches",
+    "section": "diff",
+    "aliases": [
+      "patch",
+      "diff-patch"
+    ],
+    "inputType": "dual",
+    "outputType": "text",
+    "canonicalSlug": "diff-suite",
+    "presetOptions": {
+      "mode": "unified-diff"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "epoch-converter",
+    "name": "Epoch Converter",
+    "description": "Convert timestamps to dates",
+    "section": "datetime",
+    "aliases": [
+      "unix-time",
+      "timestamp"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "datetime-suite",
+    "presetOptions": {
+      "mode": "epoch-iso"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "relative-time",
+    "name": "Relative Time",
+    "description": "Show relative time (ago / from now)",
+    "section": "datetime",
+    "aliases": [
+      "time-ago",
+      "relative"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "datetime-suite",
+    "presetOptions": {
+      "mode": "relative"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "cron-explain",
+    "name": "Cron Explain",
+    "description": "Explain cron expressions",
+    "section": "datetime",
+    "aliases": [
+      "cron",
+      "schedule"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "datetime-suite",
+    "presetOptions": {
+      "mode": "cron"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "base-converter",
+    "name": "Base Converter",
+    "description": "Convert numbers across bases",
+    "section": "numbers",
+    "aliases": [
+      "base",
+      "radix"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "numbers-suite",
+    "presetOptions": {
+      "mode": "base-convert"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "cidr-calculator",
+    "name": "CIDR Calculator",
+    "description": "Calculate network/broadcast addresses",
+    "section": "numbers",
+    "aliases": [
+      "cidr",
+      "subnet"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "numbers-suite",
+    "presetOptions": {
+      "mode": "cidr"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "basic-auth",
+    "name": "Basic Auth Encoder",
+    "description": "Encode username/password to Basic Auth",
+    "section": "http",
+    "aliases": [
+      "basic-auth",
+      "auth"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "http-suite",
+    "presetOptions": {
+      "mode": "basic-auth"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "curl-parser",
+    "name": "cURL Parser",
+    "description": "Parse cURL commands into JSON",
+    "section": "http",
+    "aliases": [
+      "curl",
+      "curl-parse"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "http-suite",
+    "presetOptions": {
+      "mode": "curl-parse"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "color-converter",
+    "name": "Color Converter",
+    "description": "Convert hex, RGB, HSL and more",
+    "section": "colors",
+    "aliases": [
+      "hex-to-rgb",
+      "hsl"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "color-suite",
+    "presetOptions": {
+      "mode": "color-convert"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "contrast-checker",
+    "name": "Contrast Checker",
+    "description": "Check WCAG contrast ratios",
+    "section": "colors",
+    "aliases": [
+      "contrast",
+      "wcag"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "color-suite",
+    "presetOptions": {
+      "mode": "contrast"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "prettier-format",
+    "name": "Prettier Formatter",
+    "description": "Format code with Prettier",
+    "section": "code",
+    "aliases": [
+      "prettier",
+      "format"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "code-suite",
+    "presetOptions": {
+      "mode": "format"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "js-minify",
+    "name": "JS Minifier",
+    "description": "Minify JavaScript",
+    "section": "code",
+    "aliases": [
+      "minify",
+      "terser"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "code-suite",
+    "presetOptions": {
+      "mode": "minify"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "regex-tester",
+    "name": "Regex Tester",
+    "description": "Test and debug regex patterns",
+    "section": "regex",
+    "aliases": [
+      "regex",
+      "regexp"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "regex-suite",
+    "presetOptions": {
+      "mode": "match"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "extract-emails",
+    "name": "Extract Emails",
+    "description": "Extract email addresses from text",
+    "section": "data",
+    "aliases": [
+      "emails",
+      "email-extract"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-extract-suite",
+    "presetOptions": {
+      "mode": "emails"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "extract-urls",
+    "name": "Extract URLs",
+    "description": "Extract URLs from text",
+    "section": "data",
+    "aliases": [
+      "urls",
+      "url-extract"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "data-extract-suite",
+    "presetOptions": {
+      "mode": "urls"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "markdown-preview",
+    "name": "Markdown Preview",
+    "description": "Convert Markdown to HTML",
+    "section": "markdown",
+    "aliases": [
+      "markdown",
+      "md-preview"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "markdown-suite",
+    "presetOptions": {
+      "mode": "md-to-html"
+    },
+    "acceptsFile": false
+  },
+  {
+    "slug": "html-to-markdown",
+    "name": "HTML to Markdown",
+    "description": "Convert HTML into Markdown",
+    "section": "markdown",
+    "aliases": [
+      "html-to-md"
+    ],
+    "inputType": "text",
+    "outputType": "text",
+    "canonicalSlug": "markdown-suite",
+    "presetOptions": {
+      "mode": "html-to-md"
+    },
+    "acceptsFile": false
+  }
+]

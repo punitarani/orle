@@ -4,16 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "biome check",
     "lint:fix": "biome check --write --unsafe",
     "format": "biome format --write",
     "tools": "bun run scripts/generate-tool-manifest.ts",
     "devtools": "npx @ai-sdk/devtools",
+    "raycast:sync": "bun run raycast/scripts/sync-tools.ts",
     "raycast:dev": "cd raycast && bun run dev",
     "raycast:build": "cd raycast && bun run build",
     "raycast:lint": "cd raycast && bun run lint",
+    "raycast:lint:fix": "cd raycast && bun run lint --fix",
     "raycast:publish": "cd raycast && bun run publish"
   },
   "dependencies": {
