@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useGraphStore } from "@/lib/tools/json-viz/store";
 import type { GraphNodeData } from "@/lib/tools/json-viz/types";
 import { getRowDisplayValue } from "@/lib/tools/json-viz/utils";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ interface TextNodeProps {
  */
 export const TextNode = React.memo(({ node }: TextNodeProps) => {
   const { data, width, height } = node;
+  const setSelectedNode = useGraphStore((state) => state.setSelectedNode);
   const value = data[0]?.value;
   const valueType = typeof value;
   const isBoolean = typeof value === "boolean";
@@ -31,10 +33,11 @@ export const TextNode = React.memo(({ node }: TextNodeProps) => {
       data-node-id={node.id}
       className="overflow-hidden"
     >
-      <div
+      <button
+        type="button"
         className={cn(
           "flex h-full w-full items-center justify-center bg-white px-3 py-2",
-          "font-mono text-xs font-medium",
+          "font-mono text-xs font-medium shadow-sm whitespace-nowrap",
         )}
         style={{
           borderRadius: "14px",
@@ -49,9 +52,13 @@ export const TextNode = React.memo(({ node }: TextNodeProps) => {
                     : "rgb(239, 68, 68)"
                   : "rgb(99, 102, 241)",
         }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedNode(node);
+        }}
       >
         <TextRenderer>{getRowDisplayValue(data[0])}</TextRenderer>
-      </div>
+      </button>
     </foreignObject>
   );
 });

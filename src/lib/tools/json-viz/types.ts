@@ -55,6 +55,7 @@ export interface GraphStore {
   // View state
   viewPort: ViewPort | null;
   direction: "RIGHT" | "DOWN";
+  simpleLayout: boolean;
   selectedNode: GraphNodeData | null;
   loading: boolean;
 
@@ -69,6 +70,7 @@ export interface GraphStore {
   setSelectedNode: (node: GraphNodeData | null) => void;
   setSearchQuery: (query: string) => void;
   setDirection: (direction: "RIGHT" | "DOWN") => void;
+  toggleLayoutMode: () => void;
   nextMatch: () => void;
   previousMatch: () => void;
   zoomIn: () => void;
@@ -82,9 +84,9 @@ export interface GraphStore {
  * Node dimensions constants
  */
 export const NODE_DIMENSIONS = {
-  ROW_HEIGHT: 24,
-  PARENT_HEIGHT: 36,
-  MIN_WIDTH: 160,
+  ROW_HEIGHT: 26,
+  PARENT_HEIGHT: 44,
+  MIN_WIDTH: 200,
   MAX_WIDTH: 700,
-  PADDING: 10,
+  PADDING: 12,
 } as const;

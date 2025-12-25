@@ -21,7 +21,7 @@ export function SearchInput() {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(localQuery);
-    }, 600);
+    }, 450);
 
     return () => clearTimeout(timer);
   }, [localQuery, setSearchQuery]);
@@ -48,6 +48,7 @@ export function SearchInput() {
           onChange={handleChange}
           placeholder="Search keys, values, paths..."
           className="h-9 w-[240px] pl-8 pr-8"
+          title="Search keys, values, paths"
         />
         {localQuery && (
           <Button
@@ -55,6 +56,7 @@ export function SearchInput() {
             variant="ghost"
             className="absolute right-0 top-1/2 size-7 -translate-y-1/2"
             onClick={handleClear}
+            title="Clear search"
           >
             <X className="size-3.5" />
           </Button>
@@ -73,6 +75,7 @@ export function SearchInput() {
               className="size-8"
               onClick={previousMatch}
               disabled={matchCount === 0}
+              title="Previous match"
             >
               <ChevronUp className="size-4" />
             </Button>
@@ -82,6 +85,7 @@ export function SearchInput() {
               className="size-8"
               onClick={nextMatch}
               disabled={matchCount === 0}
+              title="Next match"
             >
               <ChevronDown className="size-4" />
             </Button>

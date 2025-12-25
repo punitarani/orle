@@ -43,9 +43,12 @@ export const CustomEdge = React.memo((props: EdgeProps) => {
       onEnter={() => setHovered(true)}
       onLeave={() => setHovered(false)}
       style={{
-        stroke: hovered ? "rgb(59, 130, 246)" : "rgb(203, 213, 225)",
-        strokeWidth: hovered ? 2 : 1.5,
-        transition: "all 0.2s ease",
+        stroke: hovered ? "rgb(59, 130, 246)" : "rgb(148, 163, 184)",
+        strokeWidth: hovered ? 2.4 : 1.8,
+        strokeLinecap: "round",
+        opacity: hovered ? 0.95 : 0.8,
+        filter: hovered ? "drop-shadow(0 0 4px rgba(59,130,246,0.45))" : "none",
+        transition: "all 0.16s ease",
       }}
       label={labelElement}
     />

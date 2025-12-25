@@ -11,6 +11,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   // View state
   viewPort: null,
   direction: "RIGHT",
+  simpleLayout: false,
   selectedNode: null,
   loading: false,
 
@@ -58,6 +59,10 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
   setDirection: (direction: "RIGHT" | "DOWN") => {
     set({ direction });
+  },
+
+  toggleLayoutMode: () => {
+    set((state) => ({ simpleLayout: !state.simpleLayout }));
   },
 
   nextMatch: () => {

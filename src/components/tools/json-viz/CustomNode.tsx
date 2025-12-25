@@ -47,17 +47,21 @@ export const CustomNode = React.memo((nodeProps: NodeProps<GraphNodeData>) => {
       onEnter={(ev) => {
         setHovered(true);
         ev.currentTarget.style.stroke = "rgb(59, 130, 246)";
-        ev.currentTarget.style.strokeWidth = "2";
+        ev.currentTarget.style.strokeWidth = "2.2";
+        ev.currentTarget.style.filter =
+          "drop-shadow(0 4px 10px rgba(59,130,246,0.18))";
       }}
       onLeave={(ev) => {
         setHovered(false);
         ev.currentTarget.style.stroke = "rgb(203, 213, 225)";
-        ev.currentTarget.style.strokeWidth = "1";
+        ev.currentTarget.style.strokeWidth = "1.2";
+        ev.currentTarget.style.filter = "none";
       }}
       style={{
         fill: "rgb(255, 255, 255)",
         stroke: "rgb(203, 213, 225)",
-        strokeWidth: 1,
+        strokeWidth: 1.2,
+        filter: "drop-shadow(0 2px 6px rgba(15,23,42,0.08))",
       }}
     >
       {({ x, y }) => {

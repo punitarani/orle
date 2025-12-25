@@ -21,6 +21,7 @@ const GraphCanvas = React.memo(() => {
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
   const direction = useGraphStore((state) => state.direction);
+  const simpleLayout = useGraphStore((state) => state.simpleLayout);
   const setLoading = useGraphStore((state) => state.setLoading);
   const centerView = useGraphStore((state) => state.centerView);
 
@@ -51,31 +52,52 @@ const GraphCanvas = React.memo(() => {
     [paneHeight, paneWidth, centerView, setLoading],
   );
 
+  // Provide a simple manual layout when ELK is disabled
+  const nodesForCanvas = React.useMemo(() => {
+    if (!simpleLayout) return nodes;
+
+    const spacingX = 220;
+    const spacingY = 140;
+    return nodes.map((node, index) => ({
+      ...node,
+      x: (index % 8) * spacingX,
+      y: Math.floor(index / 8) * spacingY,
+    }));
+  }, [nodes, simpleLayout]);
+
+  const layoutOptions = React.useMemo(() => {
+    if (simpleLayout) return undefined;
+    return {
+      "elk.direction": direction,
+    };
+  }, [direction, simpleLayout]);
+
   // Debug logging
   React.useEffect(() => {
     console.log("Graph Canvas Data:", {
-      nodeCount: nodes.length,
+      nodeCount: nodesForCanvas.length,
       edgeCount: edges.length,
       paneWidth,
       paneHeight,
-      firstNode: nodes[0],
+      firstNode: nodesForCanvas[0],
       firstEdge: edges[0],
-      allNodes: nodes,
+      allNodes: nodesForCanvas,
       allEdges: edges,
     });
-  }, [nodes, edges, paneWidth, paneHeight]);
+  }, [nodesForCanvas, edges, paneWidth, paneHeight]);
 
   return (
     <Canvas
-      key={`canvas-${direction}-${nodes.length}`}
+      key={`canvas-${direction}-${nodesForCanvas.length}-${simpleLayout ? "simple" : "elk"}`}
       className="json-viz-canvas"
-      nodes={nodes}
+      nodes={nodesForCanvas}
       edges={edges}
       width={paneWidth}
       height={paneHeight}
       maxWidth={paneWidth}
       maxHeight={paneHeight}
       direction={direction as CanvasDirection}
+      layoutOptions={layoutOptions}
       node={(props) => <CustomNode {...props} />}
       edge={(props) => <CustomEdge {...props} />}
       onLayoutChange={onLayoutChange}
@@ -100,6 +122,10 @@ export function GraphView({ data }: GraphViewProps) {
   const setViewPort = useGraphStore((state) => state.setViewPort);
   const setGraph = useGraphStore((state) => state.setGraph);
   const viewPort = useGraphStore((state) => state.viewPort);
+  const direction = useGraphStore((state) => state.direction);
+  const setDirection = useGraphStore((state) => state.setDirection);
+  const simpleLayout = useGraphStore((state) => state.simpleLayout);
+  const toggleLayoutMode = useGraphStore((state) => state.toggleLayoutMode);
 
   // Parse JSON data into graph structure on mount
   React.useEffect(() => {
@@ -134,7 +160,25 @@ export function GraphView({ data }: GraphViewProps) {
   }, [viewPort, setViewPort]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg border bg-gradient-to-b from-muted/50 to-muted/20">
+    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-800/70 bg-[#0f0f11] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+      <div className="pointer-events-auto absolute right-3 top-3 z-10 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="rounded-md border bg-background px-3 py-1 text-xs font-medium shadow-sm transition hover:border-primary hover:text-primary"
+          onClick={() => setDirection(direction === "RIGHT" ? "DOWN" : "RIGHT")}
+          title="Toggle layout direction"
+        >
+          Direction: {direction === "RIGHT" ? "→" : "↓"}
+        </button>
+        <button
+          type="button"
+          className="rounded-md border bg-background px-3 py-1 text-xs font-medium shadow-sm transition hover:border-primary hover:text-primary"
+          onClick={toggleLayoutMode}
+          title="Fallback to simple layout if ELK misbehaves"
+        >
+          Layout: {simpleLayout ? "Simple" : "Auto"}
+        </button>
+      </div>
       {/* Background removed per request to hide grid */}
 
       {/* SVG gradients for nodes */}
@@ -157,7 +201,7 @@ export function GraphView({ data }: GraphViewProps) {
         onUpdated={debouncedOnZoomChange}
         treatTwoFingerTrackPadGesturesLikeTouch
         pollForElementResizing
-        className="h-full w-full cursor-move"
+        className="h-full w-full cursor-move rounded-lg bg-transparent"
       >
         <GraphCanvas />
       </Space>

@@ -56,10 +56,11 @@ export function formatPreview(value: unknown): string {
   if (value === null) return "null";
   if (value === undefined) return "undefined";
   if (typeof value === "string") {
-    if (value.length > 50) {
-      return `"${value.substring(0, 47)}..."`;
-    }
-    return `"${value}"`;
+    const trimmed = value.trim();
+    const alreadyQuoted = /^".*"$/.test(trimmed);
+    const inner = alreadyQuoted ? trimmed.slice(1, -1) : trimmed;
+    const safe = inner.length > 50 ? `${inner.substring(0, 47)}...` : inner;
+    return `"${safe}"`;
   }
   if (typeof value === "number") return String(value);
   if (typeof value === "boolean") return String(value);
@@ -173,24 +174,25 @@ export function highlightMatchedNodes(
   matchedNodeIds: Set<string>,
   currentNodeId?: string,
 ): void {
-  // Clear previous highlights
-  const previousHighlights = document.querySelectorAll(
-    ".json-viz-matched, .json-viz-current-match",
-  );
-  previousHighlights.forEach((el) => {
-    el.classList.remove("json-viz-matched", "json-viz-current-match");
-  });
+  // Batch DOM work to the next frame to avoid layout thrash.
+  window.requestAnimationFrame(() => {
+    const previousHighlights = document.querySelectorAll(
+      ".json-viz-matched, .json-viz-current-match",
+    );
+    previousHighlights.forEach((el) => {
+      el.classList.remove("json-viz-matched", "json-viz-current-match");
+    });
 
-  // Add new highlights
-  for (const nodeId of matchedNodeIds) {
-    const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
-    if (nodeElement) {
-      nodeElement.classList.add("json-viz-matched");
-      if (currentNodeId === nodeId) {
-        nodeElement.classList.add("json-viz-current-match");
+    for (const nodeId of matchedNodeIds) {
+      const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
+      if (nodeElement) {
+        nodeElement.classList.add("json-viz-matched");
+        if (currentNodeId === nodeId) {
+          nodeElement.classList.add("json-viz-current-match");
+        }
       }
     }
-  }
+  });
 }
 
 /**
