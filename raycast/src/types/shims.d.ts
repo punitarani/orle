@@ -1,42 +1,61 @@
+type PrettierPlugin = import("prettier").Plugin;
+
 declare module "prettier/parser-babel" {
-  const parser: unknown;
-  export = parser;
+  const plugin: PrettierPlugin;
+  export = plugin;
 }
 
 declare module "prettier/parser-html" {
-  const parser: unknown;
-  export = parser;
+  const plugin: PrettierPlugin;
+  export = plugin;
 }
 
 declare module "prettier/parser-markdown" {
-  const parser: unknown;
-  export = parser;
+  const plugin: PrettierPlugin;
+  export = plugin;
 }
 
 declare module "prettier/parser-postcss" {
-  const parser: unknown;
-  export = parser;
+  const plugin: PrettierPlugin;
+  export = plugin;
 }
 
 declare module "prettier/parser-typescript" {
-  const parser: unknown;
-  export = parser;
+  const plugin: PrettierPlugin;
+  export = plugin;
 }
 
 declare module "culori" {
-  export const converter: (...args: unknown[]) => unknown;
-  export const formatHex: (...args: unknown[]) => unknown;
-  export const formatRgb: (...args: unknown[]) => unknown;
-  export const parse: (...args: unknown[]) => unknown;
-  export const wcagContrast: (...args: unknown[]) => unknown;
+  type Color = Record<string, unknown>;
+  export const converter: (
+    mode: string,
+  ) => (color: unknown) => Color | null | undefined;
+  export const formatHex: (color: unknown) => string;
+  export const formatRgb: (color: unknown) => string;
+  export const parse: (input: string) => Color | null | undefined;
+  export const wcagContrast: (a: unknown, b: unknown) => number;
 }
 
 declare module "papaparse" {
-  const Papa: unknown;
+  export type ParseError = { message: string };
+  export type ParseResult = { data: unknown; errors: ParseError[] };
+  export function parse(
+    input: string,
+    config?: { header?: boolean; delimiter?: string; skipEmptyLines?: boolean },
+  ): ParseResult;
+  export function unparse(
+    input: unknown,
+    config?: { delimiter?: string; header?: boolean },
+  ): string;
+  const Papa: {
+    parse: typeof parse;
+    unparse: typeof unparse;
+  };
   export default Papa;
 }
 
 declare module "turndown" {
-  const TurndownService: unknown;
-  export default TurndownService;
+  export default class TurndownService {
+    turndown(html: string): string;
+  }
 }

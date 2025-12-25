@@ -3,6 +3,21 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import yaml from "js-yaml";
 import { JSONPath } from "jsonpath-plus";
 import Papa from "papaparse";
+const papa = () =>
+  Papa as {
+    parse: (
+      input: string,
+      config?: {
+        header?: boolean;
+        delimiter?: string;
+        skipEmptyLines?: boolean;
+      },
+    ) => { data: unknown; errors: Array<{ message: string }> };
+    unparse: (
+      input: unknown,
+      config?: { delimiter?: string; header?: boolean },
+    ) => string;
+  };
 import type { ToolDefinition } from "../types";
 
 export const formatTools: ToolDefinition[] = [
@@ -116,13 +131,13 @@ export const formatTools: ToolDefinition[] = [
           }
           case "json-to-csv": {
             const obj = JSON.parse(text);
-            return Papa.unparse(obj, {
+            return papa().unparse(obj, {
               delimiter: String(opts.csvDelimiter || ","),
               header: Boolean(opts.csvHeader),
             });
           }
           case "csv-to-json": {
-            const result = Papa.parse(text, {
+            const result = papa().parse(text, {
               header: true,
               delimiter: String(opts.csvDelimiter || ","),
               skipEmptyLines: true,

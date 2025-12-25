@@ -1,11 +1,28 @@
 import { converter, formatHex, formatRgb, parse, wcagContrast } from "culori";
 import type { ToolDefinition } from "../types";
 
-const toRgb = converter("rgb");
-const toHsl = converter("hsl");
-const toHsv = converter("hsv");
-const toLab = converter("lab");
-const toLch = converter("lch");
+type RgbColor = { r: number; g: number; b: number; mode?: string };
+type HslColor = { h: number; s: number; l: number };
+type HsvColor = { h: number; s: number; v: number };
+type LabColor = { l: number; a: number; b: number };
+type LchColor = { l: number; c: number; h: number };
+
+const toRgb = converter("rgb") as (
+  color: unknown,
+) => RgbColor | null | undefined;
+const toHsl = converter("hsl") as (
+  color: unknown,
+) => HslColor | null | undefined;
+const toHsv = converter("hsv") as (
+  color: unknown,
+) => HsvColor | null | undefined;
+const toLab = converter("lab") as (
+  color: unknown,
+) => LabColor | null | undefined;
+const toLch = converter("lch") as (
+  color: unknown,
+) => LchColor | null | undefined;
+const contrast = wcagContrast as (a: unknown, b: unknown) => number;
 
 export const colorTools: ToolDefinition[] = [
   {
@@ -77,7 +94,7 @@ export const colorTools: ToolDefinition[] = [
         if (!color1 || !color2) {
           return { type: "error", message: "Invalid colors" };
         }
-        const ratio = wcagContrast(color1, color2).toFixed(2);
+        const ratio = contrast(color1, color2).toFixed(2);
         return `Contrast ratio: ${ratio}:1`;
       }
 
@@ -105,8 +122,8 @@ export const colorTools: ToolDefinition[] = [
         const white = parse("#ffffff");
         if (!black || !white)
           return { type: "error", message: "Color parse failed" };
-        const contrastBlack = wcagContrast(background, black);
-        const contrastWhite = wcagContrast(background, white);
+        const contrastBlack = contrast(background, black);
+        const contrastWhite = contrast(background, white);
         const minContrast = Number(opts.minContrast) || 4.5;
         const recommended =
           contrastBlack >= minContrast || contrastBlack >= contrastWhite

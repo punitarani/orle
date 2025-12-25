@@ -6,7 +6,16 @@ import parserTypescript from "prettier/parser-typescript";
 import prettier from "prettier/standalone";
 import { format as formatSQL } from "sql-formatter";
 import { minify } from "terser";
+import type { Plugin } from "prettier";
 import type { ToolDefinition } from "../types";
+
+const prettierPlugins: Plugin[] = [
+  parserBabel as Plugin,
+  parserTypescript as Plugin,
+  parserHtml as Plugin,
+  parserPostcss as Plugin,
+  parserMarkdown as Plugin,
+];
 
 export const codeTools: ToolDefinition[] = [
   {
@@ -59,13 +68,7 @@ export const codeTools: ToolDefinition[] = [
             );
             return prettier.format(text, {
               parser,
-              plugins: [
-                parserBabel,
-                parserTypescript,
-                parserHtml,
-                parserPostcss,
-                parserMarkdown,
-              ],
+              plugins: prettierPlugins,
             });
           } catch (error) {
             return { type: "error", message: (error as Error).message };
