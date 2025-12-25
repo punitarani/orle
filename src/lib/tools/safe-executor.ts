@@ -6,7 +6,7 @@ const MAX_EXECUTION_TIME = 5000;
 
 export async function executeTransform(
   transformCode: string,
-  input: string | File,
+  input: unknown,
   options: Record<string, unknown>,
 ): Promise<ToolTransformResult> {
   return new Promise((resolve) => {

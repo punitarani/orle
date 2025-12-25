@@ -2,7 +2,7 @@ import type { ToolTransformResult } from "./types";
 
 type WorkerPayload = {
   code: string;
-  input: string | File;
+  input: unknown;
   options: Record<string, unknown>;
 };
 
@@ -64,6 +64,7 @@ const ALLOWED_GLOBALS = {
   TypeError,
   RangeError,
   SyntaxError,
+  structuredClone,
   undefined,
   NaN,
   Infinity,
@@ -104,6 +105,16 @@ function normalizeResult(result: unknown): ToolTransformResult {
 
     if (obj.type === "download") {
       return obj as ToolTransformResult;
+    }
+
+    if (obj.type === "json-visual") {
+      return obj as ToolTransformResult;
+    }
+
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return { type: "error", message: "Invalid transform result" };
     }
   }
 

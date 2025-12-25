@@ -658,6 +658,58 @@
     "runPolicy": "manual"
   },
   {
+    "slug": "json-explorer",
+    "name": "JSON Explorer",
+    "description": "Interactive graph and tree visualization for JSON structure",
+    "section": "formats",
+    "aliases": [
+      "json graph",
+      "json tree",
+      "visualizer",
+      "json crack",
+      "diagram",
+      "json viewer",
+      "collapse json",
+      "expand json"
+    ],
+    "inputType": "text",
+    "outputType": "preview",
+    "inputPlaceholder": "Paste JSON to explore as an interactive graph or collapsible tree...",
+    "layout": "stacked",
+    "outputHeading": "Visualization",
+    "runPolicy": "manual"
+  },
+  {
+    "slug": "json-script-runner",
+    "name": "JSON Script Runner",
+    "description": "Run a safe JavaScript snippet to extract or reshape JSON",
+    "section": "formats",
+    "aliases": ["json manipulate", "json extract", "json function"],
+    "inputType": "dual",
+    "outputType": "text",
+    "options": [
+      {
+        "id": "indent",
+        "label": "Indent",
+        "type": "number",
+        "default": 2,
+        "min": 0,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "outputHeading": "Result",
+    "dualInputConfig": {
+      "helperText": "Left: JSON payload. Right: JavaScript that returns a result.",
+      "label1": "JSON input",
+      "label2": "Transform",
+      "placeholder1": "Paste JSON...",
+      "placeholder2": "// input is already parsed JSON\n// return a new value to display\nreturn input;",
+      "allowSwap": false
+    },
+    "runPolicy": "manual"
+  },
+  {
     "slug": "diff-suite",
     "name": "Diff & Compare Suite",
     "description": "Text, JSON, and structural diffs",

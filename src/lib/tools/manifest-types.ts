@@ -32,6 +32,9 @@ export type ToolMeta = {
   inputPlaceholder?: string;
   outputPlaceholder?: string;
   allowSwap?: boolean;
+  layout?: "split" | "stacked";
+  outputHeading?: string;
+  dualInputConfig?: unknown;
   acceptsFile?: boolean;
   fileAccept?: string;
   runPolicy?: "auto" | "manual";

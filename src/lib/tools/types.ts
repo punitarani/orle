@@ -88,6 +88,25 @@ export type DiffResultData = {
   };
 };
 
+export type JsonNode = {
+  id: string;
+  key: string | null;
+  path: string;
+  type: "object" | "array" | "value";
+  valueType: "object" | "array" | "string" | "number" | "boolean" | "null";
+  preview: string;
+  children?: JsonNode[];
+};
+
+export type JsonVisualizerResultData = {
+  type: "json-visual";
+  root: JsonNode;
+  nodeCount: number;
+  depth: number;
+  textOutput: string;
+  initialView?: "graph" | "tree";
+};
+
 export type DownloadResultData = {
   type: "download";
   data: Uint8Array;
@@ -102,7 +121,17 @@ export type ToolTransformResult =
   | DownloadResultData
   | ImageResultData
   | ColorResultData
-  | DiffResultData;
+  | DiffResultData
+  | JsonVisualizerResultData;
+
+export type DualInputConfig = {
+  helperText?: string;
+  label1?: string;
+  label2?: string;
+  placeholder1?: string;
+  placeholder2?: string;
+  allowSwap?: boolean;
+};
 
 export type ToolDefinition = {
   slug: string;
@@ -120,6 +149,9 @@ export type ToolDefinition = {
   examples?: ToolExample[];
   useWorker?: "hash" | "diff" | "image";
   allowSwap?: boolean;
+  layout?: "split" | "stacked";
+  dualInputConfig?: DualInputConfig;
+  outputHeading?: string;
   inputPlaceholder?: string;
   outputPlaceholder?: string;
   acceptsFile?: boolean;
@@ -139,7 +171,11 @@ export type ToolState = {
   input: string;
   input2?: string; // For dual input (diff tools)
   output: string;
-  outputData?: ImageResultData | ColorResultData | DiffResultData; // Structured output
+  outputData?:
+    | ImageResultData
+    | ColorResultData
+    | DiffResultData
+    | JsonVisualizerResultData; // Structured output
   download?: {
     url: string;
     filename: string;

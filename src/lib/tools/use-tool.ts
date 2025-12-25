@@ -8,6 +8,7 @@ import type {
   DiffResultData,
   DownloadResultData,
   ImageResultData,
+  JsonVisualizerResultData,
   ToolDefinition,
   ToolState,
   ToolTransformInput,
@@ -200,6 +201,39 @@ export function useTool(
                     ? data.resultUrl
                     : "",
               outputData: data,
+              download: undefined,
+              isProcessing: false,
+            }));
+          } else if (result.type === "json-visual") {
+            const data = result as JsonVisualizerResultData;
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+              downloadUrlRef.current = null;
+            }
+            setState((prev) => ({
+              ...prev,
+              output: data.textOutput,
+              outputData: data,
+              download: undefined,
+              isProcessing: false,
+            }));
+          } else {
+            // Fallback: stringify any other object results
+            if (downloadUrlRef.current) {
+              URL.revokeObjectURL(downloadUrlRef.current);
+              downloadUrlRef.current = null;
+            }
+            const fallbackOutput = (() => {
+              try {
+                return JSON.stringify(result, null, 2);
+              } catch {
+                return String(result);
+              }
+            })();
+            setState((prev) => ({
+              ...prev,
+              output: fallbackOutput,
+              outputData: undefined,
               download: undefined,
               isProcessing: false,
             }));

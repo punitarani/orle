@@ -15,6 +15,8 @@ type DualInputProps = {
   label2?: string;
   placeholder1?: string;
   placeholder2?: string;
+  helperText?: string;
+  showSwap?: boolean;
   className?: string;
 };
 
@@ -27,6 +29,8 @@ export function DualInput({
   label2 = "Modified",
   placeholder1 = "Enter original text...",
   placeholder2 = "Enter modified text...",
+  helperText = "Enter two texts to compare",
+  showSwap = true,
   className,
 }: DualInputProps) {
   const id = useId();
@@ -43,19 +47,19 @@ export function DualInput({
     <div className={cn("flex flex-col gap-4", className)}>
       {/* Header with swap button */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          Enter two texts to compare
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSwap}
-          className="h-7 gap-1.5 text-xs"
-          disabled={!value1 && !value2}
-        >
-          <ArrowRightLeft className="size-3" />
-          Swap
-        </Button>
+        <span className="text-sm text-muted-foreground">{helperText}</span>
+        {showSwap && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSwap}
+            className="h-7 gap-1.5 text-xs"
+            disabled={!value1 && !value2}
+          >
+            <ArrowRightLeft className="size-3" />
+            Swap
+          </Button>
+        )}
       </div>
 
       {/* Side-by-side inputs on desktop, stacked on mobile */}

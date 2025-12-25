@@ -19,6 +19,7 @@ import type {
   ColorResultData,
   DiffResultData,
   ImageResultData,
+  JsonVisualizerResultData,
   ToolDefinition,
 } from "@/lib/tools/types";
 import { useTool } from "@/lib/tools/use-tool";
@@ -26,6 +27,7 @@ import { ColorOutput } from "./color-output";
 import { DiffOutput } from "./diff-output";
 import { DualInput } from "./dual-input";
 import { ImageToolOutput } from "./image-tool-output";
+import { JsonVisualizerOutput } from "./json-visualizer";
 import { ToolExamples } from "./tool-examples";
 import { ToolInput, type ToolInputRef } from "./tool-input";
 import { ToolOptions } from "./tool-options";
@@ -138,6 +140,22 @@ export function ToolPage({
       : tool.inputType === "none"
         ? false
         : !input && !file);
+  const layout = tool.layout ?? "split";
+  const dualConfig = tool.dualInputConfig;
+  const outputHeading =
+    tool.outputHeading ??
+    (tool.inputType === "dual" ? "Differences" : "Output");
+  const outputActionValue =
+    outputData?.type === "image-result"
+      ? (outputData as ImageResultData).resultUrl
+      : output;
+  const outputDownload =
+    outputData?.type === "image-result"
+      ? {
+          url: (outputData as ImageResultData).resultUrl,
+          filename: (outputData as ImageResultData).filename ?? "output.txt",
+        }
+      : (download ?? undefined);
 
   // Track file state from ToolInput
   useEffect(() => {
@@ -189,6 +207,15 @@ export function ToolPage({
             inputA={input}
             inputB={input2 || ""}
             diffMode={diffMode}
+          />
+        );
+      }
+
+      if (outputData.type === "json-visual") {
+        return (
+          <JsonVisualizerOutput
+            data={outputData as JsonVisualizerResultData}
+            rawOutput={output}
           />
         );
       }
@@ -306,8 +333,12 @@ export function ToolPage({
             value2={input2 || ""}
             onChange1={setInput}
             onChange2={setInput2}
-            placeholder1="Enter original text..."
-            placeholder2="Enter modified text..."
+            placeholder1={dualConfig?.placeholder1 || "Enter original text..."}
+            placeholder2={dualConfig?.placeholder2 || "Enter modified text..."}
+            label1={dualConfig?.label1}
+            label2={dualConfig?.label2}
+            helperText={dualConfig?.helperText}
+            showSwap={dualConfig?.allowSwap ?? true}
           />
           {tool.runPolicy === "manual" && (
             <div className="flex justify-end">
@@ -324,7 +355,7 @@ export function ToolPage({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">
-                Differences
+                {outputHeading}
               </span>
               <OutputActions value={output} download={download ?? undefined} />
             </div>
@@ -334,11 +365,74 @@ export function ToolPage({
       )}
 
       {/* Input/Output for non-dual tools */}
-      {tool.inputType !== "dual" && tool.inputType !== "none" && (
-        <div className="grid gap-6 md:grid-cols-2 md:items-start">
-          {/* Input with Run button */}
-          <div className="flex flex-col gap-2">
-            <div className="flex h-7 items-center justify-between">
+      {tool.inputType !== "dual" &&
+        tool.inputType !== "none" &&
+        layout === "split" && (
+          <div className="grid gap-6 md:grid-cols-2 md:items-start">
+            {/* Input with Run button */}
+            <div className="flex flex-col gap-2">
+              <div className="flex h-7 items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Input
+                </span>
+                {hasFile && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    onClick={handleClearFile}
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+              <ToolInput
+                ref={toolInputRef}
+                type={tool.inputType}
+                value={input}
+                onChange={setInput}
+                onFileChange={setFile}
+                acceptsFile={tool.acceptsFile}
+                fileAccept={tool.fileAccept}
+                placeholder={tool.inputPlaceholder}
+              />
+              {(tool.runPolicy === "manual" || tool.inputType === "text") && (
+                <Button
+                  onClick={runTransform}
+                  disabled={disableRun}
+                  className="self-end"
+                >
+                  <Play className="mr-2 size-4" />
+                  Run
+                  <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                    <CommandIcon className="size-3" />
+                    <CornerDownLeft className="size-3" />
+                  </span>
+                </Button>
+              )}
+            </div>
+
+            {/* Output */}
+            <div className="flex flex-col gap-2">
+              <div className="flex h-7 items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {outputHeading}
+                </span>
+                <OutputActions
+                  value={outputActionValue}
+                  download={outputDownload}
+                />
+              </div>
+              {renderOutput()}
+            </div>
+          </div>
+        )}
+
+      {tool.inputType !== "dual" &&
+        tool.inputType !== "none" &&
+        layout === "stacked" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">
                 Input
               </span>
@@ -364,56 +458,39 @@ export function ToolPage({
               placeholder={tool.inputPlaceholder}
             />
             {(tool.runPolicy === "manual" || tool.inputType === "text") && (
-              <Button
-                onClick={runTransform}
-                disabled={disableRun}
-                className="self-end"
-              >
-                <Play className="mr-2 size-4" />
-                Run
-                <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
-                  <CommandIcon className="size-3" />
-                  <CornerDownLeft className="size-3" />
-                </span>
-              </Button>
+              <div className="flex justify-end">
+                <Button onClick={runTransform} disabled={disableRun}>
+                  <Play className="mr-2 size-4" />
+                  Run
+                  <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                    <CommandIcon className="size-3" />
+                    <CornerDownLeft className="size-3" />
+                  </span>
+                </Button>
+              </div>
             )}
-          </div>
 
-          {/* Output */}
-          <div className="flex flex-col gap-2">
-            <div className="flex h-7 items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Output
-              </span>
-              <OutputActions
-                value={
-                  outputData?.type === "image-result"
-                    ? (outputData as ImageResultData).resultUrl
-                    : output
-                }
-                download={
-                  outputData?.type === "image-result"
-                    ? {
-                        url: (outputData as ImageResultData).resultUrl,
-                        filename:
-                          (outputData as ImageResultData).filename ??
-                          "output.txt",
-                      }
-                    : (download ?? undefined)
-                }
-              />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {outputHeading}
+                </span>
+                <OutputActions
+                  value={outputActionValue}
+                  download={outputDownload}
+                />
+              </div>
+              {renderOutput()}
             </div>
-            {renderOutput()}
           </div>
-        </div>
-      )}
+        )}
 
       {/* Generator tools (no input) */}
       {tool.inputType === "none" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              Output
+              {outputHeading}
             </span>
             <OutputActions value={output} download={download ?? undefined} />
           </div>
