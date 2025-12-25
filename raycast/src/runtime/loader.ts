@@ -15,8 +15,13 @@ function mergeToolMeta(tool: ToolDefinition, meta: ToolMeta): ToolDefinition {
   const preset = meta.presetOptions ?? {};
   const baseTransform = tool.transform;
   const sourceOptions = meta.options ?? tool.options ?? [];
+  const hasPresetMode =
+    typeof preset.mode === "string" ||
+    typeof preset.mode === "number" ||
+    typeof preset.mode === "boolean";
+
   const options =
-    preset.mode !== undefined
+    hasPresetMode && preset.mode !== undefined
       ? sourceOptions.filter((opt) => {
           if (opt.id === "mode") return false;
           if (
@@ -25,7 +30,8 @@ function mergeToolMeta(tool: ToolDefinition, meta: ToolMeta): ToolDefinition {
             preset.mode !== undefined
           ) {
             const target = opt.visibleWhen.equals;
-            if (Array.isArray(target)) return target.includes(preset.mode);
+            if (Array.isArray(target))
+              return target.includes(preset.mode as never);
             return target === preset.mode;
           }
           return true;

@@ -494,7 +494,7 @@ async function verifyJwt(token: string, secret: string): Promise<string> {
   const parts = token.split(".");
   if (parts.length !== 3) return "Invalid JWT";
   const [headerB64, payloadB64, signatureB64] = parts;
-  const header = parseBase64Json(headerB64);
+  const header = parseBase64Json(headerB64) as Record<string, unknown>;
   const alg = String(header.alg || "");
   if (!alg.startsWith("HS")) {
     return "Unsupported alg (only HS256/HS384/HS512)";

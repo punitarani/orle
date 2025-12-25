@@ -54,11 +54,17 @@ export default function SearchTools() {
   );
 }
 
-function ToolListItem({ tool }: { tool: ToolMeta }) {
+function ToolListItem({
+  tool,
+  showSection = false,
+}: {
+  tool: ToolMeta;
+  showSection?: boolean;
+}) {
   return (
     <List.Item
       title={tool.name}
-      subtitle={tool.description}
+      subtitle={showSection ? tool.section : tool.description}
       keywords={tool.aliases}
       accessories={[
         { text: tool.inputType === "none" ? "Generator" : "Transform" },
