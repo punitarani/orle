@@ -12,8 +12,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DualInput } from "@/components/tools/dual-input";
 import { ToolExamples } from "@/components/tools/tool-examples";
 import { ToolInput, type ToolInputRef } from "@/components/tools/tool-input";
@@ -118,26 +118,29 @@ function OutputActions({
   );
 }
 
-function useQueryParam(name: string) {
-  const [value, setValue] = useState<string | null>(null);
+type IdState = string | null | undefined;
 
-  useEffect(() => {
-    const update = () => {
-      const sp = new URLSearchParams(window.location.search);
-      setValue(sp.get(name));
-    };
-    update();
-    window.addEventListener("popstate", update);
-    return () => window.removeEventListener("popstate", update);
-  }, [name]);
+function useCustomToolId(): IdState {
+  const searchParams = useSearchParams();
 
-  return value;
+  const id = useMemo(() => {
+    const fromQuery = searchParams.get("id");
+    if (fromQuery) return fromQuery;
+    if (typeof window === "undefined") return undefined;
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return null;
+    if (hash.startsWith("id=")) return hash.slice(3);
+    return hash || null;
+  }, [searchParams]);
+
+  return id;
 }
 
 export function CustomToolPageClient() {
-  const id = useQueryParam("id");
+  const id = useCustomToolId();
   const router = useRouter();
   const [tool, setTool] = useState<CustomToolDefinition | null>(null);
+  const [lastTool, setLastTool] = useState<CustomToolDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFoundState, setNotFoundState] = useState(false);
 
@@ -152,10 +155,25 @@ export function CustomToolPageClient() {
   const toolInputRef = useRef<ToolInputRef>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const optionsRef = useRef<Record<string, unknown>>({});
+  const idRef = useRef<IdState>(id);
 
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
+
+  // Reset state when id changes
+  useEffect(() => {
+    if (idRef.current === id) return;
+    idRef.current = id;
+    setTool(null);
+    setLoading(true);
+    setNotFoundState(false);
+    setInputState("");
+    setInput2State("");
+    setOutput("");
+    setError(null);
+    setFile(null);
+  }, [id]);
 
   const runTransformWithTool = useCallback(
     async (
@@ -197,9 +215,14 @@ export function CustomToolPageClient() {
 
   useEffect(() => {
     async function loadTool() {
+      if (id === undefined) {
+        // Still resolving query/hash; keep loading spinner
+        return;
+      }
+
       if (!id) {
-        setNotFoundState(true);
         setLoading(false);
+        setNotFoundState(true);
         return;
       }
 
@@ -210,6 +233,7 @@ export function CustomToolPageClient() {
           return;
         }
         setTool(loadedTool);
+        setLastTool(loadedTool);
 
         const defaults: Record<string, unknown> = {};
         if (loadedTool.options) {
@@ -324,7 +348,7 @@ export function CustomToolPageClient() {
     router.push("/");
   };
 
-  if (loading) {
+  if (loading || id === undefined) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -332,8 +356,34 @@ export function CustomToolPageClient() {
     );
   }
 
-  if (notFoundState || !tool) {
-    notFound();
+  if (notFoundState) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+          {id
+            ? "Tool not found in this browser."
+            : "No custom tool id provided."}
+        </div>
+      </div>
+    );
+  }
+
+  if (!tool) {
+    // If we have a previous tool, keep showing it while loading the next ID
+    if (lastTool) {
+      return (
+        <div className="flex h-64 items-center justify-center">
+          <div className="rounded-lg border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+            Loading custom tool...
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   const renderOutput = () => {

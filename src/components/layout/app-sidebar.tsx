@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Collapsible,
@@ -77,6 +77,7 @@ const SECTION_ICONS = {
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [customTools, setCustomTools] = useState<CustomToolDefinition[]>([]);
   const [activeCustomId, setActiveCustomId] = useState<string | null>(null);
 
@@ -95,18 +96,33 @@ export function AppSidebar() {
     // Refresh when navigating to/from custom tools
     const handleFocus = () => loadCustomTools();
     window.addEventListener("focus", handleFocus);
-    const handlePopState = () => {
+
+    const syncFromLocation = () => {
       const sp = new URLSearchParams(window.location.search);
       setActiveCustomId(sp.get("id"));
     };
-    handlePopState();
-    window.addEventListener("popstate", handlePopState);
+    syncFromLocation();
+    window.addEventListener("popstate", syncFromLocation);
+    window.addEventListener("hashchange", syncFromLocation);
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "custom-tools-sync") {
+        loadCustomTools();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("popstate", syncFromLocation);
+      window.removeEventListener("hashchange", syncFromLocation);
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
+
+  useEffect(() => {
+    setActiveCustomId(searchParams.get("id"));
+  }, [searchParams]);
 
   const handleDeleteCustomTool = async (
     e: React.MouseEvent,

@@ -40,6 +40,13 @@ export async function saveCustomTool(
 ): Promise<void> {
   const db = await getDB();
   await db.put("tools", tool);
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("custom-tools-sync", Date.now().toString());
+    }
+  } catch {
+    // ignore
+  }
 }
 
 /**
@@ -77,6 +84,13 @@ export async function listCustomTools(): Promise<CustomToolDefinition[]> {
 export async function deleteCustomTool(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("tools", id);
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("custom-tools-sync", Date.now().toString());
+    }
+  } catch {
+    // ignore
+  }
 }
 
 /**

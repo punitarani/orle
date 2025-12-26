@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSearch } from "@/components/layout/command-search";
 import {
@@ -44,7 +45,9 @@ export default async function RootLayout({
       >
         <Providers>
           <SidebarProvider defaultOpen={defaultSidebarOpen}>
-            <AppSidebar />
+            <Suspense fallback={null}>
+              <AppSidebar />
+            </Suspense>
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-gradient-to-b from-background/95 via-background/80 to-background/60 px-4 backdrop-blur">
                 <HeaderSidebarTrigger />
