@@ -1,3 +1,4 @@
+import type { Plugin } from "prettier";
 import parserBabel from "prettier/parser-babel";
 import parserHtml from "prettier/parser-html";
 import parserMarkdown from "prettier/parser-markdown";
@@ -6,7 +7,6 @@ import parserTypescript from "prettier/parser-typescript";
 import prettier from "prettier/standalone";
 import { format as formatSQL } from "sql-formatter";
 import { minify } from "terser";
-import type { Plugin } from "prettier";
 import type { ToolDefinition } from "../types";
 
 const prettierPlugins: Plugin[] = [
