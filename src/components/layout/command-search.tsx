@@ -1,6 +1,8 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -164,18 +166,34 @@ export function CommandSearch() {
 
   if (!open) {
     return (
-      <Button
-        variant="outline"
-        className="relative h-9 w-full justify-start rounded-md bg-muted/50 px-3 text-sm text-muted-foreground sm:w-64"
-        onClick={() => setOpen(true)}
-      >
-        <Search className="mr-2 size-4" />
-        <span className="hidden sm:inline-flex">Search tools...</span>
-        <span className="inline-flex sm:hidden">Search...</span>
-        <Kbd className="pointer-events-none absolute right-2 hidden sm:inline-flex">
-          ⌘K
-        </Kbd>
-      </Button>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          prefetch={false}
+          className="flex shrink-0 items-center gap-2 text-sm font-semibold sm:hidden"
+        >
+          <Image
+            src="/logo.png"
+            alt="orle.dev logo"
+            width={24}
+            height={24}
+            className="size-6 rounded-md"
+          />
+          <span>orle.dev</span>
+        </Link>
+        <Button
+          variant="outline"
+          className="relative h-9 w-full justify-start rounded-md bg-muted/50 px-3 text-sm text-muted-foreground sm:w-64"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="mr-2 size-4" />
+          <span className="hidden sm:inline-flex">Search tools...</span>
+          <span className="inline-flex sm:hidden">Search...</span>
+          <Kbd className="pointer-events-none absolute right-2 hidden sm:inline-flex">
+            ⌘K
+          </Kbd>
+        </Button>
+      </div>
     );
   }
 

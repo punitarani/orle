@@ -1,8 +1,6 @@
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Suspense } from "react";
@@ -51,19 +49,6 @@ export default async function RootLayout({
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-gradient-to-b from-background/95 via-background/80 to-background/60 px-4 backdrop-blur">
                 <HeaderSidebarTrigger />
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 text-sm font-semibold sm:hidden"
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="orle.dev logo"
-                    width={24}
-                    height={24}
-                    className="size-6 rounded-md"
-                  />
-                  <span>orle.dev</span>
-                </Link>
                 <div className="flex-1">
                   <CommandSearch />
                 </div>
