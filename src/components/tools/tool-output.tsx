@@ -92,7 +92,7 @@ export function ToolOutput({
         value={value}
         readOnly
         placeholder={placeholder}
-        className="min-h-[200px] max-h-[360px] resize-y font-mono text-sm"
+        className="min-h-[200px] max-h-[360px] resize-y font-mono text-base sm:text-sm"
       />
     </div>
   );

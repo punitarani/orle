@@ -171,7 +171,7 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="min-h-[120px] max-h-[320px] resize-y font-mono text-sm"
+            className="min-h-[120px] max-h-[320px] resize-y font-mono text-base sm:text-sm"
           />
           <div className="relative">
             <button
@@ -210,7 +210,7 @@ export const ToolInput = forwardRef<ToolInputRef, ToolInputProps>(
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="min-h-[200px] max-h-[320px] resize-y font-mono text-sm"
+          className="min-h-[200px] max-h-[320px] resize-y font-mono text-base sm:text-sm"
         />
         {acceptsFile && onFileChange && (
           <div className="relative">

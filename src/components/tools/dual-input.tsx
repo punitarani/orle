@@ -77,7 +77,7 @@ export function DualInput({
             value={value1}
             onChange={(e) => onChange1(e.target.value)}
             placeholder={placeholder1}
-            className="min-h-[200px] max-h-[320px] resize-y font-mono text-sm"
+            className="min-h-[200px] max-h-[320px] resize-y font-mono text-base sm:text-sm"
           />
         </div>
 
@@ -94,7 +94,7 @@ export function DualInput({
             value={value2}
             onChange={(e) => onChange2(e.target.value)}
             placeholder={placeholder2}
-            className="min-h-[200px] max-h-[320px] resize-y font-mono text-sm"
+            className="min-h-[200px] max-h-[320px] resize-y font-mono text-base sm:text-sm"
           />
         </div>
       </div>
