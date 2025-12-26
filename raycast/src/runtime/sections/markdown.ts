@@ -31,9 +31,11 @@ export const markdownTools: ToolDefinition[] = [
       if (!text) return "";
 
       if (mode === "html-to-md") {
-        const turndown = new (TurndownService as unknown as {
-          new (): { turndown: (html: string) => string };
-        })();
+        const turndown = new (
+          TurndownService as unknown as {
+            new (): { turndown: (html: string) => string };
+          }
+        )();
         return turndown.turndown(text);
       }
 

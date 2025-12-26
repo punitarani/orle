@@ -120,10 +120,7 @@ export function HomeOmnibox() {
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
-      if (
-        (event.metaKey || event.ctrlKey) &&
-        event.key.toLowerCase() === "k"
-      ) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setOpen(true);
         inputRef.current?.focus();
@@ -195,7 +192,7 @@ export function HomeOmnibox() {
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search tools or type to create..."
-            className="h-6 border-0 bg-transparent px-0 py-0 text-[13px] text-white placeholder:text-white/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-7 sm:text-base dark:bg-transparent"
+            className="h-6 border-0 bg-transparent px-0 py-0 text-base text-white placeholder:text-white/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-7 sm:text-sm dark:bg-transparent"
             aria-label="Search tools or create a custom tool"
           />
           <Button

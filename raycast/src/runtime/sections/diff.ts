@@ -167,11 +167,10 @@ export const diffTools: ToolDefinition[] = [
             : Diff.diffLines(text1, text2);
 
       const changes = diff.map((part) => ({
-        type: (part.added
-          ? "added"
-          : part.removed
-            ? "removed"
-            : "unchanged") as "added" | "removed" | "unchanged",
+        type: (part.added ? "added" : part.removed ? "removed" : "unchanged") as
+          | "added"
+          | "removed"
+          | "unchanged",
         value: part.value.replace(/\n$/, ""),
       }));
 
